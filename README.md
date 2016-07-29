@@ -1,2 +1,3 @@
 # mirrorGina
-A cocker container to retrieve files from GINA.
+A docker container to retrieve files from GINA.
+
