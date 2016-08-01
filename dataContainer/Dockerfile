@@ -1,5 +1,6 @@
 # volume container
-# ecapsulates filesystem access to make moving related containers easier
+# ecapsulates acces to the local filesystem. Used in both data mirroring
+# and product generation 
  
 # BUILD-USING:        docker build -t data .
 # RUN-USING:          docker run  -d -v /data:/data --name data data
