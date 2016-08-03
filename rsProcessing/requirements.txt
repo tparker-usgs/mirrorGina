@@ -1,0 +1,8 @@
+Pillow==2.1.0
+netCDF4
+h5py
+numpy
+pyzmq
+pykdtree
+supervisor
+gdal

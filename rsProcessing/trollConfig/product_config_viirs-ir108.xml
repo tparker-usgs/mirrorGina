@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding='utf-8'?>
+<?xml-stylesheet type="text/xsl" href="prodlist2.xsl"?>
+
+<product_config>
+  <!-- common default values -->
+  <common>
+    <output_dir>/data/viirs/output</output_dir>
+    <unload>True</unload>
+    <check_coverage>False</check_coverage>
+  </common>
+
+  <aliases>
+    <platform_name src="Suomi NPP" dst="npp" />
+  </aliases>
+   
+  <product_list>
+    <area id="AKSC" name="AKSC" min_coverage="0">
+      <product id="ir108" name="ir108" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}-gathered.png</file>
+      </product>
+    </area>
+
+    <area id="AKPV" name="AKPV" min_coverage="0">
+      <product id="ir108" name="ir108" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}-gathered.png</file>
+      </product>
+    </area>
+  </product_list>
+</product_config>
