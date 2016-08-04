@@ -16,7 +16,8 @@ RUN wget http://download.osgeo.org/gdal/CURRENT/gdal-2.1.1.tar.gz \
 	&& (gzip -dc gdal-2.1.1.tar.gz | tar xf -) \
 	&& cd gdal-2.1.1 \
 	&& ./configure; make; make install \
-	&& ldconfig
+	&& ldconfig \
+	&& cd .. && rm -rf gdal-2.1.1 gdal-2.1.1.tar.gz
 
 WORKDIR /root/.pip
 ADD pip.conf .
@@ -35,23 +36,19 @@ ADD requirements.txt /src/app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app/gshhg
-ADD http://www.ngdc.noaa.gov/mgg/shorelines/data/gshhg/latest/gshhg-shp-2.3.5-1.zip .
-RUN unzip gshhg-shp-2.3.5-1.zip
-
-#ADD http://effbot.org/downloads/Imaging-1.1.7.tar.gz .
-#RUN ( gzip -dc Imaging-1.1.7.tar.gz | tar xf - ) && \
-#        cd Imaging-1.1.7 && python setup.py install
+RUN wget http://www.ngdc.noaa.gov/mgg/shorelines/data/gshhg/latest/gshhg-shp-2.3.5-1.zip \
+	&& unzip gshhg-shp-2.3.5-1.zip && rm gshhg-shp-2.3.5-1.zip
 
 #ADD http://effbot.org/media/downloads/aggdraw-1.1-20051010.zip .
 #RUN export CFLAGS="-fpermissive" && unzip  aggdraw-1.1-20051010.zip && \
 #        cd aggdraw-1.1-20051010 && python setup.py install
 
 RUN export CFLAGS="-fpermissive" && git clone git://github.com/tparker-usgs/aggdraw.git && \
-	cd aggdraw && python setup.py install
+	cd aggdraw && python setup.py install && cd .. && rm -r aggdraw
 
 WORKDIR /usr/src/
 ADD installPytroll.sh .
-RUN ./installPytroll.sh
+RUN ./installPytroll.sh && cd .. && rm -r /usr/src
 
 COPY trollConfig /app/trollConfig
 COPY supervisord.conf /usr/local/etc/supervisord.conf

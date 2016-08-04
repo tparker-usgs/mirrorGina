@@ -6,7 +6,7 @@
   <common>
     <output_dir>/data/viirs/output</output_dir>
     <unload>True</unload>
-    <check_coverage>False</check_coverage>
+    <check_coverage>True</check_coverage>
   </common>
 
   <aliases>
@@ -14,13 +14,13 @@
   </aliases>
    
   <product_list>
-    <area id="AKSC" name="AKSC" min_coverage="0">
+    <area id="AKSC" name="AKSC" min_coverage="10">
       <product id="ir108" name="ir108" overlay="#ffffff">
         <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
       </product>
     </area>
 
-    <area id="AKPV" name="AKPV" min_coverage="0">
+    <area id="AKPV" name="AKPV" min_coverage="10">
       <product id="ir108" name="ir108" overlay="#ffffff">
         <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
       </product>
