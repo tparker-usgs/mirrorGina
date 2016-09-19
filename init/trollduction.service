@@ -1,0 +1,23 @@
+# systemd is an abomination. Nonetheless here it is. 
+#
+# Place file in /etc/systemd/system and run:
+# systemctl daemon-reload
+# systemctl enable trollduction.service
+# systemctl start trollduction.service
+#
+# Then weep for the future of UNIX
+
+
+[Unit]
+Description=RS processing
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a rsprocessing
+ExecStop=/usr/bin/docker stop -t 2 rsprocessing
+
+[Install]
+WantedBy=default.target
+

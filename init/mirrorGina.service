@@ -1,0 +1,17 @@
+# systemd is an abomination. Nonetheless here it is. 
+#
+# Place file in /etc/systemd/system and run `systemctl enable mirrorGina.service`
+# Then weep for the future of UNIX
+
+[Unit]
+Description=Mirror gina
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a mirrorgina
+ExecStop=/usr/bin/docker stop -t 2 mirrorgina
+
+[Install]
+WantedBy=default.target
