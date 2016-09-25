@@ -46,6 +46,7 @@ RUN wget http://www.ngdc.noaa.gov/mgg/shorelines/data/gshhg/latest/gshhg-shp-2.3
 RUN export CFLAGS="-fpermissive" && git clone git://github.com/tparker-usgs/aggdraw.git && \
 	cd aggdraw && python setup.py install && cd .. && rm -r aggdraw
 
+# update pytroll
 WORKDIR /usr/src/
 ADD installPytroll.sh .
 RUN ./installPytroll.sh && cd .. && rm -r /usr/src
