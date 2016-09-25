@@ -1,7 +1,7 @@
 # mirror files from GINA
 #
 # BUILD-USING:        docker build -t mirrorgina .
-# RUN-USING docker run --detach=true --volumes-from data --name mirrorgina mirrorgina
+# RUN-USING: docker run --detach=true --volumes-from data --name mirrorgina mirrorgina
 #
 
 # can't use onbuild due to SSL visibility
@@ -21,9 +21,10 @@ RUN echo "extra/DOIRootCA2.crt" >> /etc/ca-certificates.conf && update-ca-certif
 
 WORKDIR /app/mirrorGina
 ADD requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 ADD single.py .
 ADD mirror_gina.py .
 ADD cron-mirrorGina /etc/cron.d/
-RUN pip install --no-cache-dir -r requirements.txt
 
 CMD ["cron","-f"]
