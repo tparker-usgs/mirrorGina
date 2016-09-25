@@ -1,6 +1,11 @@
 # systemd is an abomination. Nonetheless here it is. 
 #
-# Place file in /etc/systemd/system and run `systemctl enable mirrorGina.service`
+# Place file in /etc/systemd/system and run:
+#
+# systemctl daemon-reload
+# systemctl enable mirrorGina.service
+# systemctl start mirrorGina.service
+#
 # Then weep for the future of UNIX
 
 [Unit]
