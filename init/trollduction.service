@@ -16,8 +16,8 @@ After=docker.service
 
 [Service]
 Restart=always
-ExecStart=/usr/bin/docker start -a rsprocessing
-ExecStop=/usr/bin/docker stop -t 2 rsprocessing
+ExecStart=/usr/bin/docker start -a trollduction
+ExecStop=/usr/bin/docker stop -t 2 trollduction
 
 [Install]
 WantedBy=default.target

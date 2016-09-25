@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# cron is fussy about this
-chmod 644 cron-mirrorGina
-
 systemctl stop trollduction.service && \
 docker stop trollduction && \
 docker rm trollduction && \
