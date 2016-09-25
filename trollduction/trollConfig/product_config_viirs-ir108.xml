@@ -14,13 +14,13 @@
   </aliases>
    
   <product_list>
-    <area id="AKSC" name="AKSC" min_coverage="10">
+    <area id="AKSC" name="AKSC" min_coverage="30">
       <product id="ir108" name="ir108" overlay="#ffffff">
         <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}-gathered.png</file>
       </product>
     </area>
 
-    <area id="AKPV" name="AKPV" min_coverage="10">
+    <area id="AKPV" name="AKPV" min_coverage="30">
       <product id="ir108" name="ir108" overlay="#ffffff">
         <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}-gathered.png</file>
       </product>
