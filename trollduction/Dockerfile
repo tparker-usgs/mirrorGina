@@ -53,5 +53,6 @@ RUN ./installPytroll.sh && cd .. && rm -r /usr/src
 
 COPY trollConfig /app/trollConfig
 COPY supervisord.conf /usr/local/etc/supervisord.conf
+COPY compositors /app/compositors
 
 CMD ["/usr/local/bin/supervisord"]
