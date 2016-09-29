@@ -51,8 +51,9 @@ WORKDIR /usr/src/
 ADD installPytroll.sh .
 RUN ./installPytroll.sh && cd .. && rm -r /usr/src
 
-COPY trollConfig /app/trollConfig
+#COPY trollConfig /app/trollConfig
 COPY supervisord.conf /usr/local/etc/supervisord.conf
-COPY compositors /app/compositors
+#COPY trollConfig test.py compositors /app
+COPY app /app
 
 CMD ["/usr/local/bin/supervisord"]
