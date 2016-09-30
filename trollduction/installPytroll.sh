@@ -3,7 +3,7 @@ set -x
 
 export GIT_SSL_NO_VERIFY=true
 
-for i in pyresample mpop posttroll pycoast pydecorate pyorbital pytroll-schedule pyspectral python-geotiepoints trollduction; do
+for i in pyresample mpop posttroll pycoast pydecorate pyorbital pytroll-schedule pyspectral python-geotiepoints trollduction trollimage; do
 	echo "+++ installing $i"
 	git clone --progress --verbose git://github.com/pytroll/${i}.git
 	cd $i

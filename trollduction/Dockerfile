@@ -1,7 +1,7 @@
 # mirror files from GINA
 #
-# BUILD-USING:	docker build -t rsprocessing .
-# RUN-USING:	docker run --detach=true --volumes-from data --name rsprocessing rsprocessing
+# BUILD-USING:	docker build -t trollduction .
+# RUN-USING:	docker run --detach=true --volumes-from data --name trollduction trollduction
 #
 
 # can't use onbuild due to SSL visibility
@@ -46,7 +46,7 @@ RUN wget http://www.ngdc.noaa.gov/mgg/shorelines/data/gshhg/latest/gshhg-shp-2.3
 RUN export CFLAGS="-fpermissive" && git clone git://github.com/tparker-usgs/aggdraw.git && \
 	cd aggdraw && python setup.py install && cd .. && rm -r aggdraw
 
-# update pytroll
+# update pytroll 1
 WORKDIR /usr/src/
 ADD installPytroll.sh .
 RUN ./installPytroll.sh && cd .. && rm -r /usr/src
