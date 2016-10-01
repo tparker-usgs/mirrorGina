@@ -17,7 +17,7 @@ def avoir(self):
                                 crange=(-70 + 273.15, 57.5 + 273.15))
 
     # trim data to -65 - 30 c
-    img.stretch_linear("M15", 5/127.5, 22.5/127.5)
+    img.stretch_linear(0, cutoffs=(5/127.5, 22.5/127.5))
 
     # clouds should be white
     img.enhance(inverse=True)

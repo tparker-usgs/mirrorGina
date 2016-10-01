@@ -46,14 +46,14 @@ RUN wget http://www.ngdc.noaa.gov/mgg/shorelines/data/gshhg/latest/gshhg-shp-2.3
 RUN export CFLAGS="-fpermissive" && git clone git://github.com/tparker-usgs/aggdraw.git && \
 	cd aggdraw && python setup.py install && cd .. && rm -r aggdraw
 
-# update pytroll 1
 WORKDIR /usr/src/
 ADD installPytroll.sh .
 RUN ./installPytroll.sh && cd .. && rm -r /usr/src
 
-#COPY trollConfig /app/trollConfig
 COPY supervisord.conf /usr/local/etc/supervisord.conf
-#COPY trollConfig test.py compositors /app
+
+# 5
 COPY app /app
+WORKDIR /app
 
 CMD ["/usr/local/bin/supervisord"]
