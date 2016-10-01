@@ -21,7 +21,7 @@ RUN echo "extra/DOIRootCA2.crt" >> /etc/ca-certificates.conf && update-ca-certif
 
 WORKDIR /app/mirrorGina
 ADD requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt # 1
 
 ADD single.py .
 ADD mirror_gina.py .

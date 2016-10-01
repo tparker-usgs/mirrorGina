@@ -1,6 +1,6 @@
 # placed in /etc/cron.d 
 
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+PATH=/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 #
 */5 * * * * root cd /app/mirrorGina ; ./single.py -c ./mirror_gina.py viirs -n 5 > /data/logs/viirsMirror/viirsMirror_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
