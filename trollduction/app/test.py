@@ -16,9 +16,18 @@ orbit)
 global_data.load([10.8])
 print global_data
 
-overpass = Pass("Suomi-NPP", time_slot, time_slot, instrument="viirs")
-print "Coverage: ",  overpass.area_coverage(get_area_def("AKSC"))
+overpass = Pass(global_data.satname, global_data.info["start_time"],
+global_data.info["end_time"]) 
 
-local_data = global_data.project("AKSC", mode="nearest")
-img = local_data.image.avoir()
-img.save ("/data/test.png")
+coverage = overpass.area_coverage(get_area_def("AKSC"))
+
+
+if coverage > 0:
+    print ("Coverage: " + str(coverage))
+
+    local_data = global_data.project("AKSC", mode="nearest")
+    img = local_data.image.avoir()
+    img.save ("/data/test.png")
+
+else:
+    print ("Coverage is " + str(coverage))

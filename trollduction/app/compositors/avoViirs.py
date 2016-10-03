@@ -3,6 +3,9 @@ import mpop.imageo.geo_image as geo_image
 from pydecorate import DecoratorAGG
 import aggdraw
 from trollimage.colormap import rdbu
+from trollsched.satpass import Pass
+from pprint import pprint
+from mpop.projector import get_area_def
 
 def avoir(self):
     """Make a black and white image of the IR 10.8um channel (320m).
@@ -31,9 +34,19 @@ def avoir(self):
     dc.align_bottom()
 
     font=aggdraw.Font("blue","/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",size=16)
-    dc.add_text("2099/09/09 01:66:66 UTC Suomi-NPP VIIRS thermal infrared brightness temperature(C)",
-font=font)
+    dc.add_text("2099/09/09 01:66:66 UTC Suomi-NPP VIIRS thermal infrared brightness temperature(C)", font=font)
     dc.add_scale(rdbu, extend=True)
+
+    print ":::: TOMP BEFORE ::::"
+    pprint (self._data_holder.__dict__)
+    print ":::: TOMP MIDDLE ::::"
+    pprint (img.__dict__)
+    print ":::: TOMP AFTER ::::"
+    overpass = Pass(self._data_holder.info["platform_name"], self._data_holder.info["start_time"],
+    self._data_holder.info["end_time"]) 
+
+    print ( ":::: TOMP :::: AKPV :::: " + str(overpass.area_coverage(get_area_def("AKPV"))))
+    print ( ":::: TOMP :::: AKSC :::: " + str(overpass.area_coverage(get_area_def("AKSC"))))
 
     return img
 
