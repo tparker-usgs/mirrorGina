@@ -14,13 +14,117 @@
   </aliases>
    
   <product_list>
+    <area id="AKAP" name="AKAP" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKEA" name="AKEA" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
     <area id="AKSC" name="AKSC" min_coverage="30">
       <product id="avoir" name="avoir" overlay="#ffffff">
         <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
       </product>
     </area>
-
+    <area id="AKWA" name="AKWA" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="RUKA" name="RUKA" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKAL" name="AKAL" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKGA" name="AKGA" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKGA" name="AKGA" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKIN" name="AKIN" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKSE" name="AKSE" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKNP" name="AKNP" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKCL" name="AKCL" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
     <area id="AKPV" name="AKPV" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKVN" name="AKVN" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKSH" name="AKSH" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKCE" name="AKCE" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKCH" name="AKCH" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="BERS" name="BERS" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="AKNS" name="AKNS" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="CNMI" name="CNMI" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="RUKA2km" name="RUKA2km" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="RUKI" name="RUKI" min_coverage="30">
+      <product id="avoir" name="avoir" overlay="#ffffff">
+        <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
+      </product>
+    </area>
+    <area id="RUNP" name="RUNP" min_coverage="30">
       <product id="avoir" name="avoir" overlay="#ffffff">
         <file>{time:%Y%m%d_%H%M}_{platform_name}_{areaname}_{productname}.png</file>
       </product>

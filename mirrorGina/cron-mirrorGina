@@ -3,6 +3,6 @@
 PATH=/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 #
-*/5 * * * * root cd /app/mirrorGina ; ./single.py -c ./mirror_gina.py viirs -n 5 > /data/logs/viirsMirror/viirsMirror_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
+*/5 * * * * root cd /app/mirrorGina ; ./single.py -c ./mirror_gina.py viirs -v -n 5 > /data/logs/viirsMirror/viirsMirror_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
 0 0 * * * root find /data/viirs/sdr -mtime +14 -exec rm {} \;
 0 0 * * * root find /data/logs -mtime +7 -exec rm {} \;

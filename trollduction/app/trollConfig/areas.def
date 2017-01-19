@@ -136,7 +136,7 @@ REGION: AKCE {
 REGION: AKCH {
 	NAME:		Chiginagak
 	PCS_ID:		AKCH
-        PCS_DEF:        proj=laea, lat_0=57,15, lon_0=-157, a=6371228.0, units=m
+        PCS_DEF:        proj=laea, lat_0=57.15, lon_0=-157, a=6371228.0, units=m
 	XSIZE:		1000
 	YSIZE:		800
 	AREA_EXTENT:    (-125000, -100000, 125000, 100000)

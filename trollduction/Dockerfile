@@ -1,7 +1,7 @@
 # mirror files from GINA
 #
 # BUILD-USING:	docker build -t trollduction .
-# RUN-USING:	docker run --detach=true --volumes-from data --name trollduction trollduction
+# RUN-USING:	docker run -e PYTHONUNBUFFERED=1 --detach=true --volumes-from data --name trollduction trollduction
 #
 
 # can't use onbuild due to SSL visibility
@@ -12,12 +12,12 @@ RUN apt-get update && apt-get -y install libhdf5-serial-dev libnetcdf-dev less u
 
 RUN ln -s /usr/include/freetype2 /usr/include/freetype  
 
-RUN wget http://download.osgeo.org/gdal/CURRENT/gdal-2.1.1.tar.gz \
-	&& (gzip -dc gdal-2.1.1.tar.gz | tar xf -) \
-	&& cd gdal-2.1.1 \
+RUN wget http://download.osgeo.org/gdal/CURRENT/gdal-2.1.2.tar.gz \
+	&& (gzip -dc gdal-2.1.2.tar.gz | tar xf -) \
+	&& cd gdal-2.1.2 \
 	&& ./configure; make; make install \
 	&& ldconfig \
-	&& cd .. && rm -rf gdal-2.1.1 gdal-2.1.1.tar.gz
+	&& cd .. && rm -rf gdal-2.1.2 gdal-2.1.2.tar.gz
 
 WORKDIR /root/.pip
 ADD pip.conf .
@@ -32,6 +32,7 @@ RUN echo "extra/DOIRootCA2.crt" >> /etc/ca-certificates.conf && update-ca-certif
 WORKDIR /src
 
 WORKDIR /src/app
+# 1
 ADD requirements.txt /src/app/
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -47,13 +48,21 @@ RUN export CFLAGS="-fpermissive" && git clone git://github.com/tparker-usgs/aggd
 	cd aggdraw && python setup.py install && cd .. && rm -r aggdraw
 
 WORKDIR /usr/src/
+
+# 3
 ADD installPytroll.sh .
 RUN ./installPytroll.sh && cd .. && rm -r /usr/src
 
+# 6
+ADD installPytroll-tweaked.sh .
+RUN ./installPytroll-tweaked.sh && cd .. && rm -r /usr/src
+
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 
-# 5
+# 8
 COPY app /app
 WORKDIR /app
+
+ENV PPP_CONFIG_DIR=/app/trollConfig HOME=/home/tscan PYTHONPATH=/app/compositors LOG_DIR=/data/logs
 
 CMD ["/usr/local/bin/supervisord"]

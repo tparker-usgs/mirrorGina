@@ -11,6 +11,6 @@ FROM stackbrew/busybox:latest
 # Create logs volume
 VOLUME /data
 WORKDIR /data/logs
-WORKDIR /data/viirsMiror
+WORKDIR /data/viirs
 
 CMD  ["true"]

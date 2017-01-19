@@ -184,15 +184,12 @@ class MirrorGina(object):
                 c.url = url
             # Run the internal curl state machine for the multi stack
             while 1:
-                self.logger.debug("TOMP1")
                 ret, num_handles = m.perform()
                 if ret != pycurl.E_CALL_MULTI_PERFORM:
                     break
             # Check for curl objects which have terminated, and add them to the freelist
-            self.logger.debug("ret: %d; num_handles: %d", ret, num_handles)
             while 1:
                 num_q, ok_list, err_list = m.info_read()
-                self.logger.debug("num_q: %d; ok_list: %d; err_list: %d", num_q, len(ok_list), len(err_list))
                 for c in ok_list:
                     c.fp.close()
                     c.fp = None

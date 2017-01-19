@@ -9,6 +9,7 @@ from mpop.projector import get_area_def
 
 def avoir(self):
     """Make a black and white image of the IR 10.8um channel (320m).
+       Modeled after mpop.instruments.viirs.ir108
     """
     self.check_channels("M15")
 
@@ -20,33 +21,13 @@ def avoir(self):
                                 crange=(-70 + 273.15, 57.5 + 273.15))
 
     # trim data to -65 - 30 c
-    img.stretch_linear(0, cutoffs=(5/127.5, 22.5/127.5))
+    img.stretch_linear(0, cutoffs=(5/255, 22.5/255))
 
     # clouds should be white
     img.enhance(inverse=True)
 
     # couldn't get this working in the l2processor config
     img.add_overlay(color=(255,255,255))
-
-    pil_img = img.pil_image()
-    pil_img.format = "PNG"
-    dc = DecoratorAGG(pil_img)
-    dc.align_bottom()
-
-    font=aggdraw.Font("blue","/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",size=16)
-    dc.add_text("2099/09/09 01:66:66 UTC Suomi-NPP VIIRS thermal infrared brightness temperature(C)", font=font)
-    dc.add_scale(rdbu, extend=True)
-
-    print ":::: TOMP BEFORE ::::"
-    pprint (self._data_holder.__dict__)
-    print ":::: TOMP MIDDLE ::::"
-    pprint (img.__dict__)
-    print ":::: TOMP AFTER ::::"
-    overpass = Pass(self._data_holder.info["platform_name"], self._data_holder.info["start_time"],
-    self._data_holder.info["end_time"]) 
-
-    print ( ":::: TOMP :::: AKPV :::: " + str(overpass.area_coverage(get_area_def("AKPV"))))
-    print ( ":::: TOMP :::: AKSC :::: " + str(overpass.area_coverage(get_area_def("AKSC"))))
 
     return img
 

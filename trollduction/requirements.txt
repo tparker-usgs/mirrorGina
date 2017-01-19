@@ -6,3 +6,5 @@ pyzmq
 pykdtree
 supervisor
 gdal
+netifaces
+python-dateutil

@@ -1,7 +1,7 @@
 # mirror files from GINA
 #
-# BUILD-USING:        docker build -t mirrorgina .
-# RUN-USING: docker run --detach=true --volumes-from data --name mirrorgina mirrorgina
+# BUILD-USING:  docker build -t mirrorgina .
+# RUN-USING:    docker run --detach=true --volumes-from data --name mirrorgina mirrorgina
 #
 
 # can't use onbuild due to SSL visibility
