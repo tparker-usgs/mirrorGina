@@ -23,6 +23,7 @@ import os.path
 import posixpath
 from datetime import timedelta, datetime
 from urlparse import urlparse
+import sqlite3
 
 import cStringIO
 import pycurl
@@ -31,13 +32,17 @@ import pycurl
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
 
+# INSTRUMENTS = {'viirs':{
+#     'name':'viirs', 'level':'level1', 'out_path':'viirs/sdr',
+#     'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
+#     }}
 INSTRUMENTS = {'viirs':{
-    'name':'viirs', 'level':'level1', 'out_path':'viirs/sdr', 
-    'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
+    'name':'viirs', 'level':'level1', 'out_path':'viirs/sdr',
+    'match':'/(SVM05|GMTCO)_'
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
             '?action=index&commit=Get+Products&controller=products')
-OUT_DIR = '/data'
+OUT_DIR = '/Users/tomp/data'
 
 
 class MirrorGina(object):
@@ -151,7 +156,7 @@ class MirrorGina(object):
             c.setopt(pycurl.FOLLOWLOCATION, 1)
             c.setopt(pycurl.MAXREDIRS, 5)
             c.setopt(pycurl.CONNECTTIMEOUT, 30)
-            c.setopt(pycurl.TIMEOUT, 300)
+            c.setopt(pycurl.TIMEOUT, 60)
             c.setopt(pycurl.NOSIGNAL, 1)
             m.handles.append(c)
 
@@ -191,16 +196,18 @@ class MirrorGina(object):
             while 1:
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
+                    print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
+                    
                     c.fp.close()
                     c.fp = None
                     m.remove_handle(c)
-                    print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
                     freelist.append(c)
                 for c, errno, errmsg in err_list:
+                    print("Failed: ", c.filename, c.url, errno, errmsg)
                     c.fp.close()
+                    os.path.unlink(c.filename)
                     c.fp = None
                     m.remove_handle(c)
-                    print("Failed: ", c.filename, c.url, errno, errmsg)
                     freelist.append(c)
                 num_processed += len(ok_list) + len(err_list)
                 if num_q == 0:
@@ -238,12 +245,24 @@ def arg_parse():
     return parser.parse_args()
 
 
+def get_conn(file):
+    conn = sqlite3.connect(file)
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS first_sighting
+                        (sight_date, granule, proc_date);''')
+    conn.commit()
+
+    return conn
+
 def main():
+    conn = get_conn("example.db")
+
     args = arg_parse()
 
     mirrorGina = MirrorGina(args)
     mirrorGina.fetch_files()
 
+    conn.close()
 
 if __name__ == "__main__":
     main()
