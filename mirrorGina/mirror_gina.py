@@ -20,6 +20,7 @@ import signal
 import sys
 import logging
 import os.path
+import os
 import posixpath
 from datetime import timedelta, datetime
 from urlparse import urlparse
@@ -42,33 +43,14 @@ INSTRUMENTS = {'viirs':{
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
             '?action=index&commit=Get+Products&controller=products')
-OUT_DIR = '/Users/tomp/data'
-
+OUT_DIR = '/Users/tparker/pytroll/data'
+DB_FILE = '/Users/tparker/pytroll/gina.db'
 
 class MirrorGina(object):
 
     def __init__(self, args):
-        self.logger = logging.getLogger('MirrorGina')
-
-        # create console handler and set level to debug
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-
-        # create formatter
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-        # add formatter to ch
-        ch.setFormatter(formatter)
-
-        # add ch to logger
-        self.logger.addHandler(ch)
-
-        if args.verbose:
-            logging.getLogger().setLevel(logging.DEBUG)   
-            self.logger.info("Verbose logging")
-        else:
-            logging.getLogger().setLevel(logging.INFO)
+        self.args = args
+        self.logger = self._setup_logging()
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
         # the libcurl tutorial for more info.
@@ -86,11 +68,48 @@ class MirrorGina(object):
         self._backfill = args.backfill
         self.logger.debug("backfill: %s", self._backfill)
 
-	out_path = os.path.join(OUT_DIR, self._instrument['out_path'])
-	if not os.path.exists(out_path):
-		os.makedirs(out_path)
+        out_path = os.path.join(OUT_DIR, self._instrument['out_path'])
+        if not os.path.exists(out_path):
+            os.makedirs(out_path)
+
+        self.conn = self._get_db_conn()
 
 
+
+    def _setup_logging(self):
+        logger = logging.getLogger('MirrorGina')
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+
+        if self.args.verbose:
+            logging.getLogger().setLevel(logging.DEBUG)
+            logger.info("Verbose logging")
+        else:
+            logging.getLogger().setLevel(logging.INFO)
+
+        return logger
+
+    def _get_db_conn(self):
+        conn = sqlite3.connect(DB_FILE, detect_types=sqlite3.PARSE_DECLTYPES)
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS sighting (
+                        granule_date timestamp, 
+                        granule_channel, 
+                        sight_date timestamp, 
+                        proc_date timestamp, 
+                        size int,
+                        status_code,
+                        success,
+                        PRIMARY KEY (granule_date, granule_channel));''')
+
+        conn.commit()
+
+        return conn
 
     def get_file_list(self):
 
@@ -138,7 +157,7 @@ class MirrorGina(object):
 
             if pattern.search(out_path) and not os.path.exists(out_path):
                 self.logger.debug("Queueing %s", out_path)
-                queue.append((file['url'], out_path))
+                queue.append((file, out_path))
             else:
                 self.logger.debug("Skipping %s", out_path)
 
@@ -163,6 +182,15 @@ class MirrorGina(object):
         return m
 
 
+    def _log_sighting(self, filename, size, statusCode, success):
+        sightDate = datetime.utcnow()
+        granuleDate = datetime.strptime(filename[-68:-50], 'd%Y%m%d_t%H%M%S%f')
+        granuleChannel = filename[-78:-73]
+        procDate = datetime.strptime(filename[-32:-13], '%Y%m%d%H%M%S%f')
+        self.conn.execute('''INSERT OR IGNORE INTO sighting (granule_date, granule_channel, sight_date, proc_date, size, status_code, success) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)''', (granuleDate, granuleChannel, sightDate, procDate, size, statusCode, success))
+        self.conn.commit()
+
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
         file_list = self.get_file_list()
@@ -177,7 +205,8 @@ class MirrorGina(object):
         while num_processed < num_files:
             # If there is an url to process and a free curl object, add to multi stack
             while file_queue and freelist:
-                url, filename = file_queue.pop(0)
+                file, filename = file_queue.pop(0)
+                url = file['url']
                 c = freelist.pop()
                 c.fp = open(filename, "wb")
                 c.setopt(pycurl.URL, url.encode('ascii', 'replace'))
@@ -197,15 +226,24 @@ class MirrorGina(object):
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
                     print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
-                    
+                    size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
+                    statusCode = c.getinfo(pycurl.HTTP_CODE)
+                    self._log_sighting(c.filename, size, statusCode, True)
                     c.fp.close()
                     c.fp = None
                     m.remove_handle(c)
                     freelist.append(c)
                 for c, errno, errmsg in err_list:
-                    print("Failed: ", c.filename, c.url, errno, errmsg)
+                    print("Failed:", c.filename, c.url, errno, errmsg)
+                    size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
+                    statusCode = c.getinfo(pycurl.HTTP_CODE)
+                    self._log_sighting(c.filename, size, statusCode, False)
+                    sight_date = datetime.utcnow()
+                    granule = c.filename[-68:-50]
+                    proc_date = c.filename[-36:-13]
+                    success = False
                     c.fp.close()
-                    os.path.unlink(c.filename)
+                    os.unlink(c.filename)
                     c.fp = None
                     m.remove_handle(c)
                     freelist.append(c)
@@ -225,6 +263,7 @@ class MirrorGina(object):
                 c.fp = None
             c.close()
         m.close()
+        self.conn.close()
 
 # Get args
 def arg_parse():
@@ -245,24 +284,12 @@ def arg_parse():
     return parser.parse_args()
 
 
-def get_conn(file):
-    conn = sqlite3.connect(file)
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS first_sighting
-                        (sight_date, granule, proc_date);''')
-    conn.commit()
-
-    return conn
 
 def main():
-    conn = get_conn("example.db")
-
     args = arg_parse()
 
     mirrorGina = MirrorGina(args)
     mirrorGina.fetch_files()
-
-    conn.close()
 
 if __name__ == "__main__":
     main()
