@@ -191,6 +191,52 @@ class MirrorGina(object):
                         VALUES (?, ?, ?, ?, ?, ?, ?)''', (granuleDate, granuleChannel, sightDate, procDate, size, statusCode, success))
         self.conn.commit()
 
+
+    def post_to_mattermost(self):
+        """
+        Post a message to Mattermost. Adapted from http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
+        :return: 
+        """
+        import requests, json, os
+        print os.environ['HOME']
+
+        server_url = os.environ['SERVER_URL']
+        team_id = os.environ['TEAM_ID']
+        channel_id = os.environ['CHANNEL_ID']
+        user_email = os.environ['USER_EMAIL']
+        user_pass = os.environ['USER_PASS']
+        # FILE_PATH = '/home/user/thing_to_upload.png'
+
+
+        # Login
+        s = requests.Session()  # So that the auth cookie gets saved.
+        s.headers.update({"X-Requested-With": "XMLHttpRequest"})  # To stop Mattermost rejecting our requests as CSRF.
+
+        l = s.post(server_url + 'api/v3/users/login', data=json.dumps({'login_id': user_email, 'password': user_pass}))
+
+        user_id = l.json()["id"]
+
+        # Upload the File.
+        # form_data = {
+        #     "channel_id": ('', channel_id),
+        #     "client_ids": ('', "id_for_the_file"),
+        #     "files": (os.path.basename(FILE_PATH), open(FILE_PATH, 'rb')),
+        # }
+        # r = s.post(server_url + 'api/v3/teams/' + team_id + '/files/upload', files=form_data)
+        #
+        # FILE_ID = r.json()["file_infos"][0]["id"]
+
+        # Create a post and attach the uploaded file to it.
+        p = s.post(server_url + 'api/v3/teams/' + team_id + '/channels/' + channel_id + '/posts/create',
+                   data=json.dumps({
+                       'user_id': user_id,
+                       'channel_id': channel_id,
+                       'message': 'Post message goes here',
+                       # 'file_ids': [FILE_ID, ],
+                       'create_at': 0,
+                       # 'pending_post_id': 'randomstuffogeshere',
+                   }))
+
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
         file_list = self.get_file_list()
