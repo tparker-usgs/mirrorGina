@@ -25,7 +25,7 @@ import posixpath
 from datetime import timedelta, datetime
 from urlparse import urlparse
 import sqlite3
-
+import requests
 import cStringIO
 import pycurl
 
@@ -43,8 +43,8 @@ INSTRUMENTS = {'viirs':{
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
             '?action=index&commit=Get+Products&controller=products')
-OUT_DIR = '/Users/tparker/pytroll/data'
-DB_FILE = '/Users/tparker/pytroll/gina.db'
+OUT_DIR = '/Users/tomp/pytroll/data'
+DB_FILE = '/Users/tomp/pytroll/gina.db'
 
 class MirrorGina(object):
 
@@ -70,9 +70,11 @@ class MirrorGina(object):
 
         out_path = os.path.join(OUT_DIR, self._instrument['out_path'])
         if not os.path.exists(out_path):
+            self.logger.debug("Making out dir " + out_path)
             os.makedirs(out_path)
 
         self.conn = self._get_db_conn()
+        self._get_mattermost_conn()
 
 
 
@@ -110,6 +112,34 @@ class MirrorGina(object):
         conn.commit()
 
         return conn
+
+    def _get_mattermost_conn(self):
+        self.server_url = os.environ['MATTERMOST_SERVER_URL']
+        self.logger.debug("Mattermost server URL: " + self.server_url)
+        # https://chat.avo.alaska.edu/api/v3/teams/all
+        self.team_id = os.environ['MATTERMOST_TEAM_ID']
+        self.logger.debug("Mattermost team id: " + self.team_id)
+        self.channel_id = os.environ['MATTERMOST_CHANNEL_ID']
+        self.logger.debug("Mattermost channelid: " + self.channel_id)
+        self.user_email = os.environ['MATTERMOST_USER_EMAIL']
+        self.logger.debug("Mattermost user email: " + self.user_email)
+        self.user_pass = os.environ['MATTERMOST_USER_PASS']
+        self.logger.debug("Mattermost user pass: " + self.user_pass)
+        # FILE_PATH = '/home/user/thing_to_upload.png'
+
+        # Login
+        self.matterMostSession = requests.Session()  # So that the auth cookie gets saved.
+        self.matterMostSession.headers.update({"X-Requested-With": "XMLHttpRequest"})  # To stop Mattermost rejecting our requests as CSRF.
+
+        l = self.matterMostSession.post(self.server_url + '/api/v3/users/login', data=json.dumps({'login_id': self.user_email, 'password': self.user_pass}))
+        self.logger.debug(l)
+        self.mattermostUserId = l.json()["id"]
+        #p = self.matterMostSession.get("https://chat.avo.alaska.edu/api/v3/teams/all")
+        #print(json.dumps(p.content, indent=4))
+        #p = self.matterMostSession.get("https://chat.avo.alaska.edu/api/v3/teams/members")
+        #p = self.matterMostSession.get("https://chat.avo.alaska.edu/api/v3/teams/39ou1iab7pnomynpzeme869m4w/channels/")
+        #print(json.dumps(p.content, indent=4))
+
 
     def get_file_list(self):
 
@@ -190,52 +220,28 @@ class MirrorGina(object):
         self.conn.execute('''INSERT OR IGNORE INTO sighting (granule_date, granule_channel, sight_date, proc_date, size, status_code, success) 
                         VALUES (?, ?, ?, ?, ?, ?, ?)''', (granuleDate, granuleChannel, sightDate, procDate, size, statusCode, success))
         self.conn.commit()
+        procTime = procDate - granuleDate
+        transTime = sightDate - procDate
+        self._post_to_mattermost("New file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime) + "\n  transfer delay: " + str(transTime))
 
-
-    def post_to_mattermost(self):
+    def _post_to_mattermost(self, message):
         """
         Post a message to Mattermost. Adapted from http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
         :return: 
         """
-        import requests, json, os
-        print os.environ['HOME']
-
-        server_url = os.environ['SERVER_URL']
-        team_id = os.environ['TEAM_ID']
-        channel_id = os.environ['CHANNEL_ID']
-        user_email = os.environ['USER_EMAIL']
-        user_pass = os.environ['USER_PASS']
-        # FILE_PATH = '/home/user/thing_to_upload.png'
-
-
-        # Login
-        s = requests.Session()  # So that the auth cookie gets saved.
-        s.headers.update({"X-Requested-With": "XMLHttpRequest"})  # To stop Mattermost rejecting our requests as CSRF.
-
-        l = s.post(server_url + 'api/v3/users/login', data=json.dumps({'login_id': user_email, 'password': user_pass}))
-
-        user_id = l.json()["id"]
-
-        # Upload the File.
-        # form_data = {
-        #     "channel_id": ('', channel_id),
-        #     "client_ids": ('', "id_for_the_file"),
-        #     "files": (os.path.basename(FILE_PATH), open(FILE_PATH, 'rb')),
-        # }
-        # r = s.post(server_url + 'api/v3/teams/' + team_id + '/files/upload', files=form_data)
-        #
-        # FILE_ID = r.json()["file_infos"][0]["id"]
-
-        # Create a post and attach the uploaded file to it.
-        p = s.post(server_url + 'api/v3/teams/' + team_id + '/channels/' + channel_id + '/posts/create',
-                   data=json.dumps({
-                       'user_id': user_id,
-                       'channel_id': channel_id,
-                       'message': 'Post message goes here',
+        self.logger.debug("Posting message to mattermost: " + message)
+        r = self.matterMostSession.post(self.server_url + '/api/v3/teams/' + self.team_id + '/channels/' + self.channel_id + '/posts/create',
+        #r = self.matterMostSession.post(self.server_url + '/' + self.team_id + '/channels/' + self.channel_id + '/posts/create',
+        data=json.dumps({
+                       'user_id': self.mattermostUserId,
+                       'channel_id': self.channel_id,
+                       'message': message,
                        # 'file_ids': [FILE_ID, ],
                        'create_at': 0,
                        # 'pending_post_id': 'randomstuffogeshere',
                    }))
+
+        self.logger.debug(r.content)
 
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
@@ -281,6 +287,7 @@ class MirrorGina(object):
                     freelist.append(c)
                 for c, errno, errmsg in err_list:
                     print("Failed:", c.filename, c.url, errno, errmsg)
+                    self._post_to_mattermost("Failed download: " + c.filename + " " + errmsg)
                     size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
                     statusCode = c.getinfo(pycurl.HTTP_CODE)
                     self._log_sighting(c.filename, size, statusCode, False)
