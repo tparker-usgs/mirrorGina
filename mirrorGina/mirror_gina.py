@@ -186,7 +186,6 @@ class MirrorGina(object):
 
         return m
 
-
     def _log_sighting(self, filename, size, statusCode, success, message = None):
         sightDate = datetime.utcnow()
         granuleDate = datetime.strptime(filename[-68:-50], 'd%Y%m%d_t%H%M%S%f')
@@ -198,7 +197,10 @@ class MirrorGina(object):
         procTime = procDate - granuleDate
         transTime = sightDate - procDate
         if success:
-            msg = "New file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime) + "\n  transfer delay: " + str(transTime)
+            # msg = "New file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime) + "\n  transfer delay: " + str(transTime)
+            msg = 'New file: %s %s\n' % (granuleChannel, granuleDate)
+            msg += '  processing delay: %s\n' % format_timedelta(procTime)
+            msg += '  transfer  delay: %s' % format_timedelta(transTime)
         else:
             msg = "Failed file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime)
 
@@ -288,6 +290,29 @@ class MirrorGina(object):
         m.close()
         self.conn.close()
 
+def format_timedelta(timedelta):
+    seconds = timedelta.total_seconds()
+
+    days, r = divmod(seconds, 60 * 60 * 24)
+    hours, r = divmod(r, 60 * 60)
+    minutes, r = divmod(r, 60)
+    seconds = r
+
+    timestring = ''
+    if days > 0:
+        timestring += '%dd ' % days
+
+    if hours > 0:
+        timestring += '%dh ' % hours
+
+
+    if minutes > 0:
+        timestring += '%dm ' % minutes
+
+    timestring += '%ds' % seconds
+
+    return timestring
+
 # Get args
 def arg_parse():
 
@@ -305,7 +330,6 @@ def arg_parse():
                         help="instrument to query")
 
     return parser.parse_args()
-
 
 
 def main():
