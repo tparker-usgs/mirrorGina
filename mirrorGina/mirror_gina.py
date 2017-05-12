@@ -28,7 +28,8 @@ import sqlite3
 import requests
 import cStringIO
 import pycurl
-
+from mattermost import Mattermost
+import hashlib
 
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
@@ -43,8 +44,8 @@ INSTRUMENTS = {'viirs':{
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
             '?action=index&commit=Get+Products&controller=products')
-OUT_DIR = '/Users/tomp/pytroll/data'
-DB_FILE = '/Users/tomp/pytroll/gina.db'
+OUT_DIR = os.environ['OUT_DIR']
+DB_FILE = OUT_DIR + '/gina.db'
 
 class MirrorGina(object):
 
@@ -74,7 +75,8 @@ class MirrorGina(object):
             os.makedirs(out_path)
 
         self.conn = self._get_db_conn()
-        self._get_mattermost_conn()
+        self.mattermost = Mattermost(verbose=True)
+        # self.mattermost.set_log_level(logging.DEBUG)
 
 
 
@@ -113,33 +115,6 @@ class MirrorGina(object):
 
         return conn
 
-    def _get_mattermost_conn(self):
-        self.server_url = os.environ['MATTERMOST_SERVER_URL']
-        self.logger.debug("Mattermost server URL: " + self.server_url)
-        # https://chat.avo.alaska.edu/api/v3/teams/all
-        self.team_id = os.environ['MATTERMOST_TEAM_ID']
-        self.logger.debug("Mattermost team id: " + self.team_id)
-        self.channel_id = os.environ['MATTERMOST_CHANNEL_ID']
-        self.logger.debug("Mattermost channelid: " + self.channel_id)
-        self.user_email = os.environ['MATTERMOST_USER_EMAIL']
-        self.logger.debug("Mattermost user email: " + self.user_email)
-        self.user_pass = os.environ['MATTERMOST_USER_PASS']
-        self.logger.debug("Mattermost user pass: " + self.user_pass)
-        # FILE_PATH = '/home/user/thing_to_upload.png'
-
-        # Login
-        self.matterMostSession = requests.Session()  # So that the auth cookie gets saved.
-        self.matterMostSession.headers.update({"X-Requested-With": "XMLHttpRequest"})  # To stop Mattermost rejecting our requests as CSRF.
-
-        l = self.matterMostSession.post(self.server_url + '/api/v3/users/login', data=json.dumps({'login_id': self.user_email, 'password': self.user_pass}))
-        self.logger.debug(l)
-        self.mattermostUserId = l.json()["id"]
-        #p = self.matterMostSession.get("https://chat.avo.alaska.edu/api/v3/teams/all")
-        #print(json.dumps(p.content, indent=4))
-        #p = self.matterMostSession.get("https://chat.avo.alaska.edu/api/v3/teams/members")
-        #p = self.matterMostSession.get("https://chat.avo.alaska.edu/api/v3/teams/39ou1iab7pnomynpzeme869m4w/channels/")
-        #print(json.dumps(p.content, indent=4))
-
 
     def get_file_list(self):
 
@@ -148,7 +123,7 @@ class MirrorGina(object):
         endDate = datetime.utcnow() + timedelta(days=1)
         startDate =  endDate - backfill
 
-        url = GINA_URL 
+        url = GINA_URL
         url += '&start_date=' + startDate.strftime('%Y-%m-%d')
         url += '&end_date=' + endDate.strftime('%Y-%m-%d')
         url += '&sensors[]=' + self._instrument['name']
@@ -205,14 +180,14 @@ class MirrorGina(object):
             c.setopt(pycurl.FOLLOWLOCATION, 1)
             c.setopt(pycurl.MAXREDIRS, 5)
             c.setopt(pycurl.CONNECTTIMEOUT, 30)
-            c.setopt(pycurl.TIMEOUT, 60)
+            c.setopt(pycurl.TIMEOUT, 600)
             c.setopt(pycurl.NOSIGNAL, 1)
             m.handles.append(c)
 
         return m
 
 
-    def _log_sighting(self, filename, size, statusCode, success):
+    def _log_sighting(self, filename, size, statusCode, success, message = None):
         sightDate = datetime.utcnow()
         granuleDate = datetime.strptime(filename[-68:-50], 'd%Y%m%d_t%H%M%S%f')
         granuleChannel = filename[-78:-73]
@@ -222,26 +197,16 @@ class MirrorGina(object):
         self.conn.commit()
         procTime = procDate - granuleDate
         transTime = sightDate - procDate
-        self._post_to_mattermost("New file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime) + "\n  transfer delay: " + str(transTime))
+        if success:
+            msg = "New file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime) + "\n  transfer delay: " + str(transTime)
+        else:
+            msg = "Failed file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime)
 
-    def _post_to_mattermost(self, message):
-        """
-        Post a message to Mattermost. Adapted from http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
-        :return: 
-        """
-        self.logger.debug("Posting message to mattermost: " + message)
-        r = self.matterMostSession.post(self.server_url + '/api/v3/teams/' + self.team_id + '/channels/' + self.channel_id + '/posts/create',
-        #r = self.matterMostSession.post(self.server_url + '/' + self.team_id + '/channels/' + self.channel_id + '/posts/create',
-        data=json.dumps({
-                       'user_id': self.mattermostUserId,
-                       'channel_id': self.channel_id,
-                       'message': message,
-                       # 'file_ids': [FILE_ID, ],
-                       'create_at': 0,
-                       # 'pending_post_id': 'randomstuffogeshere',
-                   }))
+        if message:
+            msg += "\n  message: " + message
 
-        self.logger.debug(r.content)
+        self.mattermost.post(msg)
+
 
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
@@ -268,6 +233,7 @@ class MirrorGina(object):
                 # store some info
                 c.filename = filename
                 c.url = url
+                c.md5 = file['md5sum']
             # Run the internal curl state machine for the multi stack
             while 1:
                 ret, num_handles = m.perform()
@@ -280,17 +246,21 @@ class MirrorGina(object):
                     print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
                     size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
                     statusCode = c.getinfo(pycurl.HTTP_CODE)
-                    self._log_sighting(c.filename, size, statusCode, True)
                     c.fp.close()
                     c.fp = None
                     m.remove_handle(c)
                     freelist.append(c)
+                    file_md5 = hashlib.md5(open(c.filename, 'rb').read()).hexdigest()
+                    self.logger.debug(str(c.md5) + " : " + str(file_md5))
+                    success = c.md5 == file_md5
+                    self._log_sighting(c.filename, size, statusCode, success)
+
+
                 for c, errno, errmsg in err_list:
                     print("Failed:", c.filename, c.url, errno, errmsg)
-                    self._post_to_mattermost("Failed download: " + c.filename + " " + errmsg)
                     size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
                     statusCode = c.getinfo(pycurl.HTTP_CODE)
-                    self._log_sighting(c.filename, size, statusCode, False)
+                    self._log_sighting(c.filename, size, statusCode, False, message=errmsg)
                     sight_date = datetime.utcnow()
                     granule = c.filename[-68:-50]
                     proc_date = c.filename[-36:-13]

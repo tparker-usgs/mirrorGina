@@ -30,11 +30,12 @@ def main():
     df['proctime'] = df['proc_date'] - df['granule_date']
     print(df.dtypes)
 
+    # proctime = pd.Series(df['proctime'], index=df['granule_date'])
     proctime = pd.Series(df['proctime'], index=df['granule_date'])
     print(df['proctime' ])
     proctime.plot()
 
-    plt.show()
+    proctime.show()
     conn.close()
 
 if __name__ == "__main__":
