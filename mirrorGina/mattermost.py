@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+Module for interacting with mattermost.
+
+:copyright:
+    The ObsPy Development Team (devs@obspy.org)
+:license:
+    GNU Lesser General Public License, Version 3
+    (https://www.gnu.org/copyleft/lesser.html)
+"""
 import os
 import json
 import requests

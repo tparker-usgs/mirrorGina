@@ -198,12 +198,15 @@ class MirrorGina(object):
         procTime = procDate - granuleDate
         transTime = sightDate - procDate
         if success:
-            msg = "New file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime) + "\n  transfer delay: " + str(transTime)
+            msg = 'New file: %s %s\n' % (granuleChannel, granuleDate)
+            msg += '  processing delay:  %s\n' % format_timedelta(procTime)
+            msg += '  transfer delay:  %s' % format_timedelta(transTime)
         else:
-            msg = "Failed file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime)
+            msg = 'Failed file: %s %s\n' % (granuleChannel, granuleDate)
+            msg += '  processing delay: %s' % format_timedelta(procTime)
 
         if message:
-            msg += "\n  message: " + message
+            msg += "\n  message: %s" % message
 
         self.mattermost.post(msg)
 
@@ -287,6 +290,27 @@ class MirrorGina(object):
             c.close()
         m.close()
         self.conn.close()
+
+def format_timedelta(timedelta):
+    seconds = timedelta.total_seconds()
+    days, r = divmod(seconds, 60 * 60 * 40)
+    hours, r = divmod(r, 60 * 60)
+    minutes, r = divmod(r, 60)
+    seconds = r
+
+    time_string = ""
+    if days > 0:
+        time_string += '%dd ' % days
+
+    if hours > 0:
+        time_string += '%dh ' % hours
+
+    if minutes > 0:
+        time_string += '%dm ' % minutes
+
+    time_string += '%ds' % seconds
+
+    return time_string
 
 # Get args
 def arg_parse():
