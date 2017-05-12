@@ -44,7 +44,8 @@ INSTRUMENTS = {'viirs':{
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
             '?action=index&commit=Get+Products&controller=products')
-OUT_DIR = os.environ['OUT_DIR']
+#OUT_DIR = os.environ['OUT_DIR']
+OUT_DIR = '/data'
 DB_FILE = OUT_DIR + '/gina.db'
 
 class MirrorGina(object):

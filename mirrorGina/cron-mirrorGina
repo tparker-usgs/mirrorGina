@@ -1,5 +1,3 @@
-# placed in /etc/cron.d 
-
 PATH=/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 #
