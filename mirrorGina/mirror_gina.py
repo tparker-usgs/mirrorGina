@@ -17,7 +17,6 @@ import argparse
 import re
 import json
 import signal
-import sys
 import logging
 import os.path
 import os
@@ -25,11 +24,11 @@ import posixpath
 from datetime import timedelta, datetime
 from urlparse import urlparse
 import sqlite3
-import requests
 import cStringIO
 import pycurl
-from mattermost import Mattermost
+import mattermost as mm
 import hashlib
+import socket
 
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
@@ -38,14 +37,17 @@ DEFAULT_NUM_CONN = 5
 #     'name':'viirs', 'level':'level1', 'out_path':'viirs/sdr',
 #     'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
 #     }}
-INSTRUMENTS = {'viirs':{
-    'name':'viirs', 'level':'level1', 'out_path':'viirs/sdr',
-    'match':'/(SVM05|GMTCO)_'
+INSTRUMENTS = {'viirs': {
+    'name': 'viirs',
+    'level': 'level1',
+    'out_path': 'viirs/sdr',
+    'match': '/(SVM05|GMTCO)_'
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
             '?action=index&commit=Get+Products&controller=products')
 OUT_DIR = os.environ['OUT_DIR']
 DB_FILE = OUT_DIR + '/gina.db'
+
 
 class MirrorGina(object):
 
@@ -74,11 +76,11 @@ class MirrorGina(object):
             self.logger.debug("Making out dir " + out_path)
             os.makedirs(out_path)
 
-        self.conn = self._get_db_conn()
-        self.mattermost = Mattermost(verbose=True)
+        self.conn = get_db_conn()
+        self.mattermost = mm.Mattermost(verbose=True)
         # self.mattermost.set_log_level(logging.DEBUG)
 
-
+        self.hostname = socket.gethostname()
 
     def _setup_logging(self):
         logger = logging.getLogger('MirrorGina')
@@ -98,34 +100,15 @@ class MirrorGina(object):
 
         return logger
 
-    def _get_db_conn(self):
-        conn = sqlite3.connect(DB_FILE, detect_types=sqlite3.PARSE_DECLTYPES)
-        cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS sighting (
-                        granule_date timestamp, 
-                        granule_channel, 
-                        sight_date timestamp, 
-                        proc_date timestamp, 
-                        size int,
-                        status_code,
-                        success,
-                        PRIMARY KEY (granule_date, granule_channel));''')
-
-        conn.commit()
-
-        return conn
-
-
     def get_file_list(self):
-
         self.logger.debug("fetching files")	
         backfill = timedelta(days=self._backfill)
-        endDate = datetime.utcnow() + timedelta(days=1)
-        startDate =  endDate - backfill
+        end_date = datetime.utcnow() + timedelta(days=1)
+        start_date = end_date - backfill
 
         url = GINA_URL
-        url += '&start_date=' + startDate.strftime('%Y-%m-%d')
-        url += '&end_date=' + endDate.strftime('%Y-%m-%d')
+        url += '&start_date=' + start_date.strftime('%Y-%m-%d')
+        url += '&end_date=' + end_date.strftime('%Y-%m-%d')
         url += '&sensors[]=' + self._instrument['name']
         url += '&processing_levels[]=' + self._instrument['level']
 
@@ -143,32 +126,28 @@ class MirrorGina(object):
         self.logger.info("Found %s files", len(files))
         return files
 
-
     def path_from_url(self, url):
-
         path = urlparse(url).path
-        file = posixpath.basename(path)
+        filename = posixpath.basename(path)
 
-        return os.path.join(OUT_DIR, self._instrument['out_path'], file)
-
+        return os.path.join(OUT_DIR, self._instrument['out_path'], filename)
 
     def queue_files(self, file_list):
 
         queue = []
         pattern = re.compile(self._instrument['match'])
         self.logger.debug("%d files before pruning", len(file_list))
-        for file in file_list:
-            out_path = self.path_from_url(file['url'])
+        for new_file in file_list:
+            out_path = self.path_from_url(new_file['url'])
 
             if pattern.search(out_path) and not os.path.exists(out_path):
                 self.logger.debug("Queueing %s", out_path)
-                queue.append((file, out_path))
+                queue.append((new_file, out_path))
             else:
                 self.logger.debug("Skipping %s", out_path)
 
         self.logger.debug("%d files after pruning", len(queue))
         return queue
-
 
     def create_multi(self):
         m = pycurl.CurlMulti()
@@ -186,29 +165,42 @@ class MirrorGina(object):
 
         return m
 
-    def _log_sighting(self, filename, size, statusCode, success, message = None):
-        sightDate = datetime.utcnow()
-        granuleDate = datetime.strptime(filename[-68:-50], 'd%Y%m%d_t%H%M%S%f')
-        granuleChannel = filename[-78:-73]
-        procDate = datetime.strptime(filename[-32:-13], '%Y%m%d%H%M%S%f')
-        self.conn.execute('''INSERT OR IGNORE INTO sighting (granule_date, granule_channel, sight_date, proc_date, size, status_code, success) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', (granuleDate, granuleChannel, sightDate, procDate, size, statusCode, success))
+    def _log_sighting(self, filename, size, status_code, success, message=None):
+        sight_date = datetime.utcnow()
+        granule_start = datetime.strptime(filename[-68:-50], 'd%Y%m%d_t%H%M%S%f')
+        granule_end = datetime.strptime(filename[-49:-41], 'e%H%M%S%f')
+        granule_channel = filename[-78:-73]
+        proc_date = datetime.strptime(filename[-32:-13], '%Y%m%d%H%M%S%f')
+        self.conn.execute('''INSERT OR IGNORE INTO sighting 
+                        (granule_date, granule_channel, sight_date, proc_date, size, status_code, success) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?)''', (granule_start, granule_channel, sight_date,
+                                                           proc_date, size, status_code, success))
         self.conn.commit()
-        procTime = procDate - granuleDate
-        transTime = sightDate - procDate
-        if success:
-            msg = 'New file: %s %s\n' % (granuleChannel, granuleDate)
-            msg += '  processing delay:  %s\n' % format_timedelta(procTime)
-            msg += '  transfer delay:  %s' % format_timedelta(transTime)
-        else:
-            msg = 'Failed file: %s %s\n' % (granuleChannel, granuleDate)
-            msg += '  processing delay: %s' % format_timedelta(procTime)
+        if granule_channel in ('GITCO', 'GMTCO'):
+            proc_time = proc_date - granule_start
+            trans_time = sight_date - proc_date
+            q = self.conn.execute("SELECT COUNT(*) FROM sighting WHERE granule_date = ? AND granule_channel = ?",
+                                  (granule_start, granule_channel))
+            count = q.fetchone()[0]
+            granule_span = mm.format_span(granule_start, granule_end)
 
-        if message:
-            msg += "\n  message: %s" % message
+            if success:
+                if count > 1:
+                    msg = 'Reprocessed file: %s %s\n' % (granule_channel, granule_span)
+                else:
+                    msg = 'New file: %s %s\n' % (granule_channel, granule_span)
 
-        self.mattermost.post(msg)
+                msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
+                msg += '  transfer delay:  %s\n' % mm.format_timedelta(trans_time)
+            else:
+                msg = 'Failed file: %s %s\n' % (granule_channel, granule_start)
+                msg += '  processing delay: %s\n' % mm.format_timedelta(proc_time)
 
+            if message:
+                msg += "  message: %s\n" % message
+
+            msg += '  host: %s' % self.hostname
+            self.mattermost.post(msg)
 
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
@@ -224,8 +216,8 @@ class MirrorGina(object):
         while num_processed < num_files:
             # If there is an url to process and a free curl object, add to multi stack
             while file_queue and freelist:
-                file, filename = file_queue.pop(0)
-                url = file['url']
+                new_file, filename = file_queue.pop(0)
+                url = new_file['url']
                 c = freelist.pop()
                 c.fp = open(filename, "wb")
                 c.setopt(pycurl.URL, url.encode('ascii', 'replace'))
@@ -235,7 +227,7 @@ class MirrorGina(object):
                 # store some info
                 c.filename = filename
                 c.url = url
-                c.md5 = file['md5sum']
+                c.md5 = new_file['md5sum']
             # Run the internal curl state machine for the multi stack
             while 1:
                 ret, num_handles = m.perform()
@@ -247,7 +239,7 @@ class MirrorGina(object):
                 for c in ok_list:
                     print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
                     size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
-                    statusCode = c.getinfo(pycurl.HTTP_CODE)
+                    status_code = c.getinfo(pycurl.HTTP_CODE)
                     c.fp.close()
                     c.fp = None
                     m.remove_handle(c)
@@ -255,18 +247,13 @@ class MirrorGina(object):
                     file_md5 = hashlib.md5(open(c.filename, 'rb').read()).hexdigest()
                     self.logger.debug(str(c.md5) + " : " + str(file_md5))
                     success = c.md5 == file_md5
-                    self._log_sighting(c.filename, size, statusCode, success)
-
+                    self._log_sighting(c.filename, size, status_code, success)
 
                 for c, errno, errmsg in err_list:
                     print("Failed:", c.filename, c.url, errno, errmsg)
                     size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
-                    statusCode = c.getinfo(pycurl.HTTP_CODE)
-                    self._log_sighting(c.filename, size, statusCode, False, message=errmsg)
-                    sight_date = datetime.utcnow()
-                    granule = c.filename[-68:-50]
-                    proc_date = c.filename[-36:-13]
-                    success = False
+                    status_code = c.getinfo(pycurl.HTTP_CODE)
+                    self._log_sighting(c.filename, size, status_code, False, message=errmsg)
                     c.fp.close()
                     os.unlink(c.filename)
                     c.fp = None
@@ -290,28 +277,24 @@ class MirrorGina(object):
         m.close()
         self.conn.close()
 
-def format_timedelta(timedelta):
-    seconds = timedelta.total_seconds()
 
-    days, r = divmod(seconds, 60 * 60 * 24)
-    hours, r = divmod(r, 60 * 60)
-    minutes, r = divmod(r, 60)
-    seconds = r
+def get_db_conn():
+    conn = sqlite3.connect(DB_FILE, detect_types=sqlite3.PARSE_DECLTYPES)
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS sighting (
+                    granule_date timestamp, 
+                    granule_channel, 
+                    sight_date timestamp, 
+                    proc_date timestamp, 
+                    size int,
+                    status_code,
+                    success,
+                    PRIMARY KEY (granule_date, granule_channel, proc_date));''')
 
-    timestring = ''
-    if days > 0:
-        timestring += '%dd ' % days
+    conn.commit()
 
-    if hours > 0:
-        timestring += '%dh ' % hours
+    return conn
 
-
-    if minutes > 0:
-        timestring += '%dm ' % minutes
-
-    timestring += '%ds' % seconds
-
-    return timestring
 
 # Get args
 def arg_parse():
@@ -335,8 +318,8 @@ def arg_parse():
 def main():
     args = arg_parse()
 
-    mirrorGina = MirrorGina(args)
-    mirrorGina.fetch_files()
+    mirror_gina = MirrorGina(args)
+    mirror_gina.fetch_files()
 
 if __name__ == "__main__":
     main()

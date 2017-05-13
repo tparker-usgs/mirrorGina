@@ -2,11 +2,11 @@
 """
 Module for interacting with mattermost.
 
-:copyright:
-    The ObsPy Development Team (devs@obspy.org)
-:license:
-    GNU Lesser General Public License, Version 3
-    (https://www.gnu.org/copyleft/lesser.html)
+#p = self.matterMostSession.get("https://chat.avo.alaska.edu/api/v3/teams/all")
+#print(json.dumps(p.content, indent=4))
+
+#p = self.matterMostSession.get("https://chat.avo.alaska.edu/api/v3/teams/<team_id>/channels/")
+#print(json.dumps(p.content, indent=4))
 """
 import os
 import json
@@ -80,3 +80,32 @@ class Mattermost(object):
             self.logger.debug(r.content)
         else:
             self.logger.warn(r.content)
+
+def format_timedelta(timedelta):
+    seconds = timedelta.total_seconds()
+
+    days, r = divmod(seconds, 60 * 60 * 24)
+    hours, r = divmod(r, 60 * 60)
+    minutes, r = divmod(r, 60)
+    seconds = r
+
+    timestring = ''
+    if days > 0:
+        timestring += '%dd ' % days
+
+    if hours > 0:
+        timestring += '%dh ' % hours
+
+
+    if minutes > 0:
+        timestring += '%dm ' % minutes
+
+    timestring += '%ds' % seconds
+
+    return timestring
+
+def format_span(start, end):
+    time_string = start.strftime('%m/%d/%Y %H:%M:%S - ')
+    time_string += end.strftime('%H:%M:%S')
+
+    return time_string
