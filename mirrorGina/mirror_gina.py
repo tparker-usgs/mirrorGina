@@ -29,6 +29,7 @@ import pycurl
 import mattermost as mm
 import hashlib
 import socket
+import viirs
 
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
@@ -121,6 +122,7 @@ class MirrorGina(object):
         buf.close()
 
         self.logger.info("Found %s files", len(files))
+        files = sorted(files, key=lambda k: k['url'], cmp=viirs.filename_comparator,reverse=True)
         return files
 
     def path_from_url(self, url):
@@ -163,34 +165,31 @@ class MirrorGina(object):
         return m
 
     def _log_sighting(self, filename, size, status_code, success, message=None):
+        granule = viirs.Viirs(filename)
         sight_date = datetime.utcnow()
-        granule_start = datetime.strptime(filename[-68:-50], 'd%Y%m%d_t%H%M%S%f')
-        granule_end = datetime.strptime(filename[-49:-41], 'e%H%M%S%f')
-        granule_channel = filename[-78:-73]
-        proc_date = datetime.strptime(filename[-32:-13], '%Y%m%d%H%M%S%f')
         self.conn.execute('''INSERT OR IGNORE INTO sighting 
                         (granule_date, granule_channel, sight_date, proc_date, size, status_code, success) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?)''', (granule_start, granule_channel, sight_date,
-                                                           proc_date, size, status_code, success))
+                         VALUES (?, ?, ?, ?, ?, ?, ?)''', (granule.start, granule.channel, sight_date,
+                                                           granule.proc_date, size, status_code, success))
         self.conn.commit()
-        if granule_channel in ('GITCO', 'GMTCO'):
-            proc_time = proc_date - granule_start
-            trans_time = sight_date - proc_date
+        if granule.channel in ('GITCO', 'GMTCO'):
+            proc_time = granule.proc_date - granule.start
+            trans_time = sight_date - granule.proc_date
             q = self.conn.execute("SELECT COUNT(*) FROM sighting WHERE granule_date = ? AND granule_channel = ?",
-                                  (granule_start, granule_channel))
+                                  (granule.start, granule.channel))
             count = q.fetchone()[0]
-            granule_span = mm.format_span(granule_start, granule_end)
+            granule_span = mm.format_span(granule.start, granule.end)
 
             if success:
                 if count > 1:
-                    msg = 'Reprocessed file: %s %s\n' % (granule_channel, granule_span)
+                    msg = 'Reprocessed file: %s %s\n' % (granule.channel, granule_span)
                 else:
-                    msg = 'New file: %s %s\n' % (granule_channel, granule_span)
+                    msg = 'New file: %s %s\n' % (granule.channel, granule_span)
 
                 msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
                 msg += '  transfer delay:  %s' % mm.format_timedelta(trans_time)
             else:
-                msg = 'Failed file: %s %s\n' % (granule_channel, granule_start)
+                msg = 'Failed file: %s %s\n' % (granule.channel, granule.start)
                 msg += '  processing delay: %s' % mm.format_timedelta(proc_time)
 
             if message:
