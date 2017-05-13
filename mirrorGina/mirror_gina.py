@@ -33,14 +33,11 @@ import socket
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
 
-# INSTRUMENTS = {'viirs':{
-#     'name':'viirs', 'level':'level1', 'out_path':'viirs/sdr',
-#     'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
-#     }}
 INSTRUMENTS = {'viirs': {
     'name': 'viirs',
     'level': 'level1',
     'out_path': 'viirs/sdr',
+    #'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
     'match': '/(SVM05|GMTCO)_'
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
@@ -191,15 +188,15 @@ class MirrorGina(object):
                     msg = 'New file: %s %s\n' % (granule_channel, granule_span)
 
                 msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
-                msg += '  transfer delay:  %s\n' % mm.format_timedelta(trans_time)
+                msg += '  transfer delay:  %s' % mm.format_timedelta(trans_time)
             else:
                 msg = 'Failed file: %s %s\n' % (granule_channel, granule_start)
-                msg += '  processing delay: %s\n' % mm.format_timedelta(proc_time)
+                msg += '  processing delay: %s' % mm.format_timedelta(proc_time)
 
             if message:
-                msg += "  message: %s\n" % message
+                msg += "\n  message: %s" % message
 
-            msg += '  host: %s' % self.hostname
+            # msg += '  host: %s' % self.hostname
             self.mattermost.post(msg)
 
     def fetch_files(self):
