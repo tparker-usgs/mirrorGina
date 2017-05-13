@@ -44,7 +44,8 @@ INSTRUMENTS = {'viirs':{
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
             '?action=index&commit=Get+Products&controller=products')
-OUT_DIR = os.environ['OUT_DIR']
+#OUT_DIR = os.environ['OUT_DIR']
+OUT_DIR = '/data'
 DB_FILE = OUT_DIR + '/gina.db'
 
 class MirrorGina(object):
@@ -197,15 +198,15 @@ class MirrorGina(object):
         procTime = procDate - granuleDate
         transTime = sightDate - procDate
         if success:
-            # msg = "New file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime) + "\n  transfer delay: " + str(transTime)
             msg = 'New file: %s %s\n' % (granuleChannel, granuleDate)
-            msg += '  processing delay: %s\n' % format_timedelta(procTime)
-            msg += '  transfer  delay: %s' % format_timedelta(transTime)
+            msg += '  processing delay:  %s\n' % format_timedelta(procTime)
+            msg += '  transfer delay:  %s' % format_timedelta(transTime)
         else:
-            msg = "Failed file: " + granuleChannel + " " + str(granuleDate) + "\n  processing delay: " + str(procTime)
+            msg = 'Failed file: %s %s\n' % (granuleChannel, granuleDate)
+            msg += '  processing delay: %s' % format_timedelta(procTime)
 
         if message:
-            msg += "\n  message: " + message
+            msg += "\n  message: %s" % message
 
         self.mattermost.post(msg)
 
