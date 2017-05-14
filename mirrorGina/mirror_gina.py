@@ -38,7 +38,7 @@ INSTRUMENTS = {'viirs': {
     'name': 'viirs',
     'level': 'level1',
     'out_path': 'viirs/sdr',
-    #'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
+    # 'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
     'match': '/(SVM05|GMTCO)_'
     }}
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
@@ -122,7 +122,7 @@ class MirrorGina(object):
         buf.close()
 
         self.logger.info("Found %s files", len(files))
-        files = sorted(files, key=lambda k: k['url'], cmp=viirs.filename_comparator,reverse=True)
+        files = sorted(files, key=lambda k: k['url'], cmp=viirs.filename_comparator)
         return files
 
     def path_from_url(self, url):
@@ -167,31 +167,52 @@ class MirrorGina(object):
     def _log_sighting(self, filename, size, status_code, success, message=None):
         granule = viirs.Viirs(filename)
         sight_date = datetime.utcnow()
-        self.conn.execute('''INSERT OR IGNORE INTO sighting 
-                        (granule_date, granule_channel, sight_date, proc_date, size, status_code, success) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?)''', (granule.start, granule.channel, sight_date,
-                                                           granule.proc_date, size, status_code, success))
-        self.conn.commit()
-        if granule.channel in ('GITCO', 'GMTCO'):
-            proc_time = granule.proc_date - granule.start
-            trans_time = sight_date - granule.proc_date
-            q = self.conn.execute("SELECT COUNT(*) FROM sighting WHERE granule_date = ? AND granule_channel = ?",
-                                  (granule.start, granule.channel))
-            count = q.fetchone()[0]
-            granule_span = mm.format_span(granule.start, granule.end)
+        q = self.conn.execute("SELECT proc_date FROM sighting WHERE orbit = ? ORDER BY proc_date DESC",
+                              (granule.orbit,))
+        r = q.fetchone()
+        if r is None:
+            previous_date = datetime.fromtimestamp(0)
+        else:
+            previous_date = r[0]
 
-            if success:
-                if count > 1:
-                    msg = 'Reprocessed file: %s %s\n' % (granule.channel, granule_span)
+        self.conn.execute('''INSERT OR IGNORE INTO sighting 
+                        (granule_date, granule_channel, orbit, sight_date, proc_date, size, status_code, success) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', (granule.start, granule.channel, granule.orbit, sight_date,
+                                                              granule.proc_date, size, status_code, success))
+        self.conn.commit()
+
+        proc_time = granule.proc_date - granule.start
+        trans_time = sight_date - granule.proc_date
+
+        msg = None
+        if not success:
+            msg = 'Failed file: %s %d %s\n' % (granule.channel, granule.orbit, granule.start)
+            msg += '  processing delay: %s' % mm.format_timedelta(proc_time)
+        else:
+            pause = timedelta(hours=1)
+            proc_span = granule.proc_date - previous_date
+            if previous_date is None or proc_span > pause:
+                if previous_date > datetime.fromtimestamp(0):
+                    orb_msg = 'Reprocessed orbit: %d' % (granule.orbit,)
                 else:
-                    msg = 'New file: %s %s\n' % (granule.channel, granule_span)
+                    orb_msg = 'New orbit: %d' % (granule.orbit,)
+                orb_msg += '\n  First granule: %s %s' % (granule.channel, mm.format_span(granule.start, granule.end))
+                self.mattermost.post(orb_msg)
+
+            if granule.channel in ('GMTCO', 'GITCO'):
+                q = self.conn.execute("SELECT COUNT(*) FROM sighting WHERE granule_date = ? AND granule_channel = ?",
+                                      (granule.start, granule.channel))
+                count = q.fetchone()[0]
+                granule_span = mm.format_span(granule.start, granule.end)
+                if count > 1:
+                    msg = 'Reprocessed granule: %d %s\n' % (granule.orbit, granule_span)
+                else:
+                    msg = 'New granule: %d %s\n' % (granule.orbit, granule_span)
 
                 msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
                 msg += '  transfer delay:  %s' % mm.format_timedelta(trans_time)
-            else:
-                msg = 'Failed file: %s %s\n' % (granule.channel, granule.start)
-                msg += '  processing delay: %s' % mm.format_timedelta(proc_time)
 
+        if msg:
             if message:
                 msg += "\n  message: %s" % message
 
@@ -242,8 +263,15 @@ class MirrorGina(object):
                     freelist.append(c)
                     file_md5 = hashlib.md5(open(c.filename, 'rb').read()).hexdigest()
                     self.logger.debug(str(c.md5) + " : " + str(file_md5))
-                    success = c.md5 == file_md5
-                    self._log_sighting(c.filename, size, status_code, success)
+
+                    if c.md5 == file_md5:
+                        success = True
+                        errmsg = None
+                    else:
+                        success = False
+                        errmsg = 'Bad checksum'
+
+                    self._log_sighting(c.filename, size, status_code, success, message=errmsg)
 
                 for c, errno, errmsg in err_list:
                     print("Failed:", c.filename, c.url, errno, errmsg)
@@ -279,12 +307,13 @@ def get_db_conn():
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS sighting (
                     granule_date timestamp, 
-                    granule_channel, 
+                    granule_channel text,
+                    orbit int,
                     sight_date timestamp, 
                     proc_date timestamp, 
                     size int,
-                    status_code,
-                    success,
+                    status_code int,
+                    success int,
                     PRIMARY KEY (granule_date, granule_channel, proc_date));''')
 
     conn.commit()

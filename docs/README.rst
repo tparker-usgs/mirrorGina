@@ -21,6 +21,14 @@ Each production system processing data has its own user id.
 | avors1  | Anchorage | Tom Parker | VIIRS retrieval from GINA |
 +---------+-----------+------------+---------------------------+
 
+===
+How
+===
+
+Processing Order
+----------------
+New data are processed by decending orbit number. Within each orbit, granules are processed in chronological order.
+
 ================
 Mattermost Usage
 ================

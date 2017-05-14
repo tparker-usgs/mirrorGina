@@ -30,7 +30,7 @@ class Viirs(object):
         self.satellite = parts[1]
         self.start = datetime.strptime(parts[2] + "_" + parts[3], 'd%Y%m%d_t%H%M%S%f')
         self.end = datetime.strptime(parts[4], 'e%H%M%S%f')
-        self.orbit = parts[5][1:]
+        self.orbit = int(parts[5][1:])
         self.proc_date = datetime.strptime(parts[6], 'c%Y%m%d%H%M%S%f')
 
     def __str__(self):
@@ -46,31 +46,33 @@ class Viirs(object):
 
 
 def filename_comparator(name1, name2):
-    '''
+    """
     Sort VIIRS filenames. Decreasing by orbit, then increasing by time. 
     
     :param name1: 
     :param name2: 
     :return: 
-    '''
+    """
     v1 = Viirs(name1)
     v2 = Viirs(name2)
 
     if v1.orbit > v2.orbit:
-        return 1
+        return -1
     elif v1.orbit < v2.orbit:
-        return -1
-    elif v1.start > v2.start:
-        return -1
-    elif v1.start < v2.start:
         return 1
+    elif v1.start > v2.start:
+        return 1
+    elif v1.start < v2.start:
+        return -1
     else:
         return 0
 
 
 def main():
     print Viirs("test/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5")
-    print filename_comparator("test/SVM01_npp_d20130117_t1959265_e2100506_b06349_c20130118032130407525_noaa_ops.h5", "test2/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5")
+    print filename_comparator(
+        "test/SVM01_npp_d20130117_t1959265_e2100506_b06349_c20130118032130407525_noaa_ops.h5",
+        "test2/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5")
 
 if __name__ == "__main__":
     main()
