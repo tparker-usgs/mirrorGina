@@ -205,9 +205,9 @@ class MirrorGina(object):
                 count = q.fetchone()[0]
                 granule_span = mm.format_span(granule.start, granule.end)
                 if count > 1:
-                    msg = 'Reprocessed granule: %d %s\n' % (granule.orbit, granule_span)
+                    msg = 'Reprocessed granule: %d %s\n' % (granule.channel, granule_span)
                 else:
-                    msg = 'New granule: %d %s\n' % (granule.orbit, granule_span)
+                    msg = 'New granule: %d %s\n' % (granule.channel, granule_span)
 
                 msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
                 msg += '  transfer delay:  %s' % mm.format_timedelta(trans_time)
