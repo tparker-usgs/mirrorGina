@@ -196,7 +196,7 @@ class MirrorGina(object):
                     orb_msg = 'Reprocessed orbit: %d' % (granule.orbit,)
                 else:
                     orb_msg = 'New orbit: %d' % (granule.orbit,)
-                orb_msg += '\n  First granule: %s %s' % (granule.channel, mm.format_span(granule.start, granule.end))
+                orb_msg += '\n  First granule: %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
                 self.mattermost.post(orb_msg)
 
             if granule.channel in ('GMTCO', 'GITCO'):
