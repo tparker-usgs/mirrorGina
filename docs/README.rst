@@ -29,6 +29,8 @@ Processing Order
 ----------------
 New data are processed by decending orbit number. Within each orbit, granules are processed in chronological order.
 
+To maximize throughput, multiple files are downloaded concurently. This can make it look like files are downloaded out of order as the download of larger files takes longer to complete.
+
 ================
 Mattermost Usage
 ================

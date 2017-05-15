@@ -167,8 +167,8 @@ class MirrorGina(object):
     def _log_sighting(self, filename, size, status_code, success, message=None):
         granule = viirs.Viirs(filename)
         sight_date = datetime.utcnow()
-        q = self.conn.execute("SELECT proc_date FROM sighting WHERE orbit = ? ORDER BY proc_date DESC",
-                              (granule.orbit,))
+        q = self.conn.execute("SELECT proc_date FROM sighting WHERE orbit = ? AND success = ?ORDER BY proc_date DESC",
+                              (granule.orbit, True))
         r = q.fetchone()
         if r is None:
             previous_date = datetime.fromtimestamp(0)
@@ -200,8 +200,8 @@ class MirrorGina(object):
                 self.mattermost.post(orb_msg)
 
             if granule.channel in ('GMTCO', 'GITCO'):
-                q = self.conn.execute("SELECT COUNT(*) FROM sighting WHERE granule_date = ? AND granule_channel = ?",
-                                      (granule.start, granule.channel))
+                q = self.conn.execute("SELECT COUNT(*) FROM sighting WHERE granule_date = ? AND granule_channel = ? AND success = ?",
+                                      (granule.start, granule.channel, True))
                 count = q.fetchone()[0]
                 granule_span = mm.format_span(granule.start, granule.end)
                 if count > 1:
