@@ -40,12 +40,12 @@ WORKDIR /app/gshhg
 RUN wget http://www.soest.hawaii.edu/pwessel/gshhg/gshhg-shp-2.3.6.zip \
 	&& unzip gshhg-shp-2.3.5-1.zip && rm gshhg-shp-2.3.5-1.zip
 
-#ADD http://effbot.org/media/downloads/aggdraw-1.1-20051010.zip .
-#RUN export CFLAGS="-fpermissive" && unzip  aggdraw-1.1-20051010.zip && \
-#        cd aggdraw-1.1-20051010 && python setup.py install
+ADD http://effbot.org/media/downloads/aggdraw-1.1-20051010.zip .
+RUN export CFLAGS="-fpermissive" && unzip  aggdraw-1.1-20051010.zip && \
+        cd aggdraw-1.1-20051010 && python setup.py install
 
-RUN export CFLAGS="-fpermissive" && git clone git://github.com/tparker-usgs/aggdraw.git && \
-	cd aggdraw && python setup.py install && cd .. && rm -r aggdraw
+#RUN export CFLAGS="-fpermissive" && git clone git://github.com/tparker-usgs/aggdraw.git && \
+	#cd aggdraw && python setup.py install && cd .. && rm -r aggdraw
 
 WORKDIR /usr/src/
 
