@@ -72,7 +72,7 @@ class MirrorGina(object):
         self._backfill = args.backfill
         self.logger.debug("backfill: %s", self._backfill)
 
-        self.out_path = os.path.join(OUT_DIR, self.args.facility, self._instrument['out_path'])
+        self.out_path = os.path.join(OUT_DIR, self._instrument['out_path'], self.args.facility)
         if not os.path.exists(self.out_path):
             self.logger.debug("Making out dir " + self.out_path)
             os.makedirs(self.out_path)
