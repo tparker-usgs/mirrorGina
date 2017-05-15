@@ -186,7 +186,7 @@ class MirrorGina(object):
 
         msg = None
         if not success:
-            msg = ':X: Failed file: %s %d %s\n' % (granule.channel, granule.orbit, granule.start)
+            msg = ':x: Failed file: %s %d %s\n' % (granule.channel, granule.orbit, granule.start)
             msg += '  processing delay: %s' % mm.format_timedelta(proc_time)
         else:
             pause = timedelta(hours=1)
