@@ -195,7 +195,7 @@ class MirrorGina(object):
                 if previous_date > datetime.fromtimestamp(0):
                     orb_msg = ':snail: _Reprocessed orbit_: %d' % (granule.orbit,)
                 else:
-                    orb_msg = ':dizzy: New orbit: %d' % (granule.orbit,)
+                    orb_msg = ':satellite: New orbit: %d' % (granule.orbit,)
                 orb_msg += '\n  First granule: %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
                 self.mattermost.post(orb_msg)
 
