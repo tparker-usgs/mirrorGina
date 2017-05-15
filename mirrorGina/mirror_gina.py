@@ -186,16 +186,16 @@ class MirrorGina(object):
 
         msg = None
         if not success:
-            msg = 'Failed file: %s %d %s\n' % (granule.channel, granule.orbit, granule.start)
+            msg = ':X: Failed file: %s %d %s\n' % (granule.channel, granule.orbit, granule.start)
             msg += '  processing delay: %s' % mm.format_timedelta(proc_time)
         else:
             pause = timedelta(hours=1)
             proc_span = granule.proc_date - previous_date
             if previous_date is None or proc_span > pause:
                 if previous_date > datetime.fromtimestamp(0):
-                    orb_msg = 'Reprocessed orbit: %d' % (granule.orbit,)
+                    orb_msg = ':snail: _Reprocessed orbit_: %d' % (granule.orbit,)
                 else:
-                    orb_msg = 'New orbit: %d' % (granule.orbit,)
+                    orb_msg = ':dizzy: New orbit: %d' % (granule.orbit,)
                 orb_msg += '\n  First granule: %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
                 self.mattermost.post(orb_msg)
 
@@ -205,9 +205,9 @@ class MirrorGina(object):
                 count = q.fetchone()[0]
                 granule_span = mm.format_span(granule.start, granule.end)
                 if count > 1:
-                    msg = 'Reprocessed granule: %s %s\n' % (granule.channel, granule_span)
+                    msg = ':snail: _Reprocessed granule_: %s %s\n' % (granule.channel, granule_span)
                 else:
-                    msg = 'New granule: %s %s\n' % (granule.channel, granule_span)
+                    msg = ':earth_americas: New granule: %s %s\n' % (granule.channel, granule_span)
 
                 msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
                 msg += '  transfer delay:  %s' % mm.format_timedelta(trans_time)
