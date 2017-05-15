@@ -72,10 +72,10 @@ class MirrorGina(object):
         self._backfill = args.backfill
         self.logger.debug("backfill: %s", self._backfill)
 
-        out_path = os.path.join(OUT_DIR, self.args.facility, self._instrument['out_path'])
-        if not os.path.exists(out_path):
-            self.logger.debug("Making out dir " + out_path)
-            os.makedirs(out_path)
+        self.out_path = os.path.join(OUT_DIR, self.args.facility, self._instrument['out_path'])
+        if not os.path.exists(self.out_path):
+            self.logger.debug("Making out dir " + self.out_path)
+            os.makedirs(self.out_path)
 
         self.conn = get_db_conn()
         self.mattermost = mm.Mattermost(verbose=True)
@@ -132,7 +132,7 @@ class MirrorGina(object):
         path = urlparse(url).path
         filename = posixpath.basename(path)
 
-        return os.path.join(OUT_DIR, self._instrument['out_path'], filename)
+        return os.path.join(self.out_path, filename)
 
     def queue_files(self, file_list):
 
