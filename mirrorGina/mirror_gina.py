@@ -41,8 +41,11 @@ INSTRUMENTS = {'viirs': {
     # 'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
     'match': '/(SVM05|GMTCO)_'
     }}
+
+FACILITIES = ('uafgina', 'gilmore')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json' +
-            '?action=index&commit=Get+Products&controller=products')
+            '?action=index&commit=Get+Products&controller=products' +
+            '&facilities[]=uafgina')
 OUT_DIR = os.environ['OUT_DIR']
 DB_FILE = OUT_DIR + '/gina.db'
 
@@ -193,24 +196,26 @@ class MirrorGina(object):
             proc_span = granule.proc_date - previous_date
             if previous_date is None or proc_span > pause:
                 if previous_date > datetime.fromtimestamp(0):
-                    orb_msg = ':snail: _Reprocessed orbit_: %d' % (granule.orbit,)
+                    orb_msg = ':snail: _Reprocessed orbit_: %d %s' % (granule.orbit, self.args.facility)
                 else:
-                    orb_msg = ':satellite: New orbit: %d' % (granule.orbit,)
+                    orb_msg = ':satellite: New orbit: %d %s' % (granule.orbit, self.args.facility)
                 orb_msg += '\n  First granule: %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
                 self.mattermost.post(orb_msg)
 
             if granule.channel in ('GMTCO', 'GITCO'):
-                q = self.conn.execute("SELECT COUNT(*) FROM sighting WHERE granule_date = ? AND granule_channel = ? AND success = ?",
+                q = self.conn.execute("SELECT COUNT(*) FROM sighting WHERE granule_date = ?' + "
+                                      "' AND granule_channel = ? AND success = ?",
                                       (granule.start, granule.channel, True))
                 count = q.fetchone()[0]
                 granule_span = mm.format_span(granule.start, granule.end)
                 if count > 1:
-                    msg = ':snail: _Reprocessed granule_: %s %s\n' % (granule.channel, granule_span)
+                    msg = ':snail: _Reprocessed granule_: %s %s\n' % (self.args.facility, granule_span)
                 else:
-                    msg = ':earth_americas: New granule: %s %s\n' % (granule.channel, granule_span)
+                    msg = ':earth_americas: New granule: %s %s\n' % (self.args.facility, granule_span)
 
                 msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
-                msg += '  transfer delay:  %s' % mm.format_timedelta(trans_time)
+                msg += '  transfer delay:  %s\n' % mm.format_timedelta(trans_time)
+                msg += '  granule length: %s' % mm.format_timedelta(granule.end - granule.start)
 
         if msg:
             if message:
@@ -332,9 +337,11 @@ def arg_parse():
                         help="# of days to back fill", 
                         type=int, default=DEFAULT_BACKFILL)
     parser.add_argument("-v", "--verbose", 
-                        help="Verbose logging", 
+                        help="Verbose logging",
                         action='store_true')
-    parser.add_argument('instrument', choices=INSTRUMENTS.keys(), 
+    parser.add_argument('-f', '--facility', choices=FACILITIES,
+                        help="facility to query", required=True)
+    parser.add_argument('instrument', choices=INSTRUMENTS.keys(),
                         help="instrument to query")
 
     return parser.parse_args()
