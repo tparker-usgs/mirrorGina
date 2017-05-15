@@ -12,12 +12,12 @@ RUN apt-get update && apt-get -y install libhdf5-serial-dev libnetcdf-dev less u
 
 RUN ln -s /usr/include/freetype2 /usr/include/freetype  
 
-RUN wget http://download.osgeo.org/gdal/CURRENT/gdal-2.1.2.tar.gz \
-	&& (gzip -dc gdal-2.1.2.tar.gz | tar xf -) \
-	&& cd gdal-2.1.2 \
+RUN wget http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz \
+	&& (gzip -dc gdal-2.2.0.tar.gz | tar xf -) \
+	&& cd gdal-2.2.0 \
 	&& ./configure; make; make install \
 	&& ldconfig \
-	&& cd .. && rm -rf gdal-2.1.2 gdal-2.1.2.tar.gz
+	&& cd .. && rm -rf gdal-2.2.0 gdal-2.2.0.tar.gz
 
 WORKDIR /root/.pip
 ADD pip.conf .
@@ -37,7 +37,7 @@ ADD requirements.txt /src/app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app/gshhg
-RUN wget http://www.ngdc.noaa.gov/mgg/shorelines/data/gshhg/latest/gshhg-shp-2.3.5-1.zip \
+RUN wget http://www.soest.hawaii.edu/pwessel/gshhg/gshhg-shp-2.3.6.zip \
 	&& unzip gshhg-shp-2.3.5-1.zip && rm gshhg-shp-2.3.5-1.zip
 
 #ADD http://effbot.org/media/downloads/aggdraw-1.1-20051010.zip .
