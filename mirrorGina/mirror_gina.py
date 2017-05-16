@@ -167,7 +167,7 @@ class MirrorGina(object):
 
         return m
 
-    def _log_sighting(self, filename, size, status_code, success, message=None):
+    def _log_sighting(self, filename, status_code, success, message=None):
         sight_date = datetime.utcnow()
         granule = viirs.Viirs(filename)
         proc_time = granule.proc_date - granule.start
@@ -181,25 +181,26 @@ class MirrorGina(object):
             pause = timedelta(hours=1)
 
             # post new orbit messasge
-            orbit_proc_time = self.conn.get_orbit_proctime(granule)
+            orbit_proc_time = self.conn.get_orbit_proctime(self.args.facility, granule)
+
             if orbit_proc_time is None:
                 orb_msg = ':earth_americas: New orbit from %s: %d' % (self.args.facility, granule.orbit)
             elif orbit_proc_time + pause < granule.proc_date:
                 orb_msg = ':snail: _Reprocessed orbit_ from %s: %d' % (self.args.facility, granule.orbit)
 
-            if orb_msg:
+            if 'orb_msg' in locals():
                 orb_msg += '\n  First granule: %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
                 self.mattermost.post(orb_msg)
 
             # post new granule message
             granule_span = mm.format_span(granule.start, granule.end)
-            granule_proc_time = self.conn.get_granule_proctime(granule, self.args.facility)
+            granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
             if granule_proc_time is None:
                 msg = ':satellite: New granule from %s: %s\n' % (self.args.facility, granule_span)
             elif granule_proc_time + pause < granule.proc_date:
                 msg = ':snail: _Reprocessed granule_ from %s: %s\n' % (self.args.facility, granule_span)
 
-            if msg:
+            if 'msg' in locals():
                 msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
                 msg += '  transfer delay:  %s\n' % mm.format_timedelta(trans_time)
                 msg += '  granule length: %s' % mm.format_timedelta(granule.end - granule.start)
@@ -207,9 +208,9 @@ class MirrorGina(object):
                 if message:
                     msg += "\n  message: %s" % message
 
+        if 'msg' in locals():
             self.mattermost.post(msg)
-            self.conn.insert_obs(self, self.args.facility, granule, sight_date, size, status_code, success)
-
+            self.conn.insert_obs(self.args.facility, granule, sight_date, status_code, success)
 
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
@@ -247,7 +248,6 @@ class MirrorGina(object):
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
                     print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
-                    size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
                     status_code = c.getinfo(pycurl.HTTP_CODE)
                     c.fp.close()
                     c.fp = None
@@ -263,13 +263,12 @@ class MirrorGina(object):
                         success = False
                         errmsg = 'Bad checksum'
 
-                    self._log_sighting(c.filename, size, status_code, success, message=errmsg)
+                    self._log_sighting(c.filename, status_code, success, message=errmsg)
 
                 for c, errno, errmsg in err_list:
                     print("Failed:", c.filename, c.url, errno, errmsg)
-                    size = c.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD)
                     status_code = c.getinfo(pycurl.HTTP_CODE)
-                    self._log_sighting(c.filename, size, status_code, False, message=errmsg)
+                    self._log_sighting(c.filename, status_code, False, message=errmsg)
                     c.fp.close()
                     os.unlink(c.filename)
                     c.fp = None

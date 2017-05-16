@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+from dateutil import parser
 
 class Db(object):
     def __init__(self, db_file):
@@ -11,7 +12,7 @@ class Db(object):
         self.db_file = db_file
         self.conn = get_db_conn(db_file)
 
-    def get_orbit_proctime(self, granule):
+    def get_orbit_proctime(self, facility, granule):
         """
         Find the most recent protime for a given orbit, reduargless of granule.
         
@@ -20,14 +21,15 @@ class Db(object):
         """
         q = self.conn.execute("SELECT MAX(proc_date) FROM sighting WHERE orbit = ? AND success = ? " 
                               "AND source = ?",
-                              (granule.orbit, True, self.args.facility))
+                              (granule.orbit, True, facility))
         r = q.fetchone()
-        if r is None:
+        if r is None or r[0] is None:
             return None
         else:
-            return r[0]
+            # parse value, SQLITE type conversion doesn't seem to work with MAX
+            return parser.parse(r[0])
 
-    def get_granule_proctime(self, granule):
+    def get_granule_proctime(self, facility, granule):
         """
         Find the most recent proctime for a given channel, reguardless of band.
         
@@ -36,33 +38,37 @@ class Db(object):
         """
         q = self.conn.execute("SELECT MAX(proc_date) FROM sighting WHERE orbit = ? AND success = ? "
                               "AND source = ?",
-                              (granule.orbit, True, self.args.facility))
+                              (granule.orbit, True, facility))
         r = q.fetchone()
-        if r is None:
+        if r is None or r[0] is None:
             return None
         else:
-            return r[0]
+            # parse value, SQLITE type conversion doesn't seem to work with MAX
+            return parser.parse(r[0])
 
-    def insert_obs(self, facility, granule, sight_date, size, status_code, success):
+    def insert_obs(self, facility, granule, sight_date, status_code, success):
         """
         
         :param facility: 
         :param granule: 
         :param sight_date: 
-        :param size: 
         :param status_code: 
         :param success: 
         :return: 
         """
-FIX THIS - granule table; sighting table
 
-        self.conn.execute("SELECT count FROM sighting WHERE source = ? AND granule_date = ? AND grannule_channel = ? AND proc_date = ?", (facility, granule.start, granule.channel, granule.proc_date))
+        q = self.conn.execute('''SELECT count FROM sighting WHERE source = ? AND granule_date = ? AND granule_channel = ? AND proc_date = ?''', (facility, granule.start, granule.channel, granule.proc_date))
+        r = q.fetchone()
+        if r is None:
+            self.conn.execute('''INSERT INTO sighting 
+                            (source, granule_date, granule_channel, orbit, sight_date, proc_date, 
+                            status_code, count, success) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)''',
+                              (facility, granule.start, granule.channel, granule.orbit,
+                               sight_date, granule.proc_date, status_code, success))
+        else:
+            self.conn.execute('''UPDATE sighting set count = ?, status_code = ?, success = ? WHERE source = ? AND granule_date = ? and granule_channel = ? and proc_date = ?)''',
+                            (r[0] + 1, status_code, success, granule.source, granule.start, granule.channel, granule.proc_date))
 
-        self.conn.execute('''INSERT OR REPLACE INTO sighting 
-                        (source, granule_date, granule_channel, orbit, sight_date, proc_date, 
-                        size, status_code, count, success) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                          (facility, granule.start, granule.channel, granule.orbit,
-                           sight_date, granule.proc_date, size, status_code, success))
         self.conn.commit()
 
     def get_proc_count(self, granule, facility):
@@ -70,6 +76,9 @@ FIX THIS - granule table; sighting table
                               ' AND granule_channel = ? AND success = ? AND source = ?',
                               (granule.start, granule.channel, True, facility))
         count = q.fetchone()[0]
+
+    def close(self):
+        self.conn.close()
 
 
 def get_db_conn(db_file):
@@ -82,26 +91,15 @@ def get_db_conn(db_file):
     conn = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES)
     cursor = conn.cursor()
 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS granule (
-                    source text,
-                    granule_date timestamp, 
-                    orbit int,
-                    PRIMARY KEY (source, granule_date));''')
-
-    cursor.execute('''CREATE TABLE IF NOT EXISTS channel (
-                    source text,
-                    granule_date timestamp, 
-                    granule_channel text,
-                    proc_date timestamp,
-                    PRIMARY KEY (source, granule_date, granule_channel, proc_date));''')
-
     cursor.execute('''CREATE TABLE IF NOT EXISTS sighting (
                     source text,
                     granule_date timestamp, 
                     granule_channel text,
                     proc_date timestamp,
+                    orbit int,
                     sight_date timestamp, 
                     status_code int,
+                    count int,
                     success int,
                     PRIMARY KEY (source, granule_date, granule_channel, proc_date));''')
 
