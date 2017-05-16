@@ -38,7 +38,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app/gshhg
 RUN wget http://www.soest.hawaii.edu/pwessel/gshhg/gshhg-shp-2.3.6.zip \
-	&& unzip gshhg-shp-2.3.5-1.zip && rm gshhg-shp-2.3.5-1.zip
+	&& unzip gshhg-shp-2.3.6.zip && rm gshhg-shp-2.3.6.zip
 
 ADD http://effbot.org/media/downloads/aggdraw-1.1-20051010.zip .
 RUN export CFLAGS="-fpermissive" && unzip  aggdraw-1.1-20051010.zip && \
@@ -54,8 +54,8 @@ ADD installPytroll.sh .
 RUN ./installPytroll.sh && cd .. && rm -r /usr/src
 
 # 6
-ADD installPytroll-tweaked.sh .
-RUN ./installPytroll-tweaked.sh && cd .. && rm -r /usr/src
+#ADD installPytroll-tweaked.sh .
+#RUN ./installPytroll-tweaked.sh && cd .. && rm -r /usr/src
 
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 
