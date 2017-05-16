@@ -2,12 +2,22 @@ import sqlite3
 from datetime import datetime
 
 class Db(object):
-
     def __init__(self, db_file):
+        """
+        Lets get started.
+        
+        :param db_file: 
+        """
         self.db_file = db_file
         self.conn = get_db_conn(db_file)
 
     def get_orbit_proctime(self, granule):
+        """
+        Find the most recent protime for a given orbit, reduargless of granule.
+        
+        :param granule: 
+        :return: 
+        """
         q = self.conn.execute("SELECT MAX(proc_date) FROM sighting WHERE orbit = ? AND success = ? " 
                               "AND source = ?",
                               (granule.orbit, True, self.args.facility))
@@ -18,6 +28,12 @@ class Db(object):
             return r[0]
 
     def get_granule_proctime(self, granule):
+        """
+        Find the most recent proctime for a given channel, reguardless of band.
+        
+        :param granule: 
+        :return: 
+        """
         q = self.conn.execute("SELECT MAX(proc_date) FROM sighting WHERE orbit = ? AND success = ? "
                               "AND source = ?",
                               (granule.orbit, True, self.args.facility))
@@ -28,12 +44,16 @@ class Db(object):
             return r[0]
 
     def insert_obs(self, facility, granule, sight_date, size, status_code, success):
-
         """
-        insert or replace into Book (ID, Name, TypeID, Level, Seen) values
-((select ID from Book where Name = "SearchName"), "SearchName", ...);
+        
+        :param facility: 
+        :param granule: 
+        :param sight_date: 
+        :param size: 
+        :param status_code: 
+        :param success: 
+        :return: 
         """
-
 FIX THIS - granule table; sighting table
 
         self.conn.execute("SELECT count FROM sighting WHERE source = ? AND granule_date = ? AND grannule_channel = ? AND proc_date = ?", (facility, granule.start, granule.channel, granule.proc_date))
