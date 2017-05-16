@@ -27,6 +27,7 @@ ADD single.py .
 ADD mirror_gina.py .
 ADD mattermost.py .
 ADD viirs.py .
+ADD db.py .
 ADD cron-mirrorGina /tmp/cron-mirrorGina
 ADD run_crond.sh  .
 RUN chmod 755 run_crond.sh
