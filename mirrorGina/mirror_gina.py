@@ -23,13 +23,13 @@ import os
 import posixpath
 from datetime import timedelta, datetime
 from urlparse import urlparse
-import sqlite3
 import cStringIO
 import pycurl
 import mattermost as mm
 import hashlib
 import socket
 import viirs
+from db import Db
 
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
@@ -77,7 +77,7 @@ class MirrorGina(object):
             self.logger.debug("Making out dir " + self.out_path)
             os.makedirs(self.out_path)
 
-        self.conn = get_db_conn()
+        self.conn = Db(DB_FILE)
         self.mattermost = mm.Mattermost(verbose=True)
         # self.mattermost.set_log_level(logging.DEBUG)
 
@@ -168,63 +168,48 @@ class MirrorGina(object):
         return m
 
     def _log_sighting(self, filename, size, status_code, success, message=None):
-        granule = viirs.Viirs(filename)
         sight_date = datetime.utcnow()
-        q = self.conn.execute("SELECT proc_date FROM sighting WHERE orbit = ? AND success = ? " 
-                              "AND source = ? ORDER BY proc_date DESC",
-                              (granule.orbit, True, self.args.facility))
-        r = q.fetchone()
-        if r is None:
-            previous_date = datetime.fromtimestamp(0)
-        else:
-            previous_date = r[0]
-
-        self.conn.execute('''INSERT OR IGNORE INTO sighting 
-                        (source, granule_date, granule_channel, orbit, sight_date, proc_date, 
-                        size, status_code, success) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                          (self.args.facility, granule.start, granule.channel, granule.orbit,
-                           sight_date, granule.proc_date, size, status_code, success))
-        self.conn.commit()
-
+        granule = viirs.Viirs(filename)
         proc_time = granule.proc_date - granule.start
         trans_time = sight_date - granule.proc_date
 
-        msg = None
         if not success:
             msg = ':x: Failed file: %s %d %s\n' % (granule.channel, granule.orbit, granule.start)
             msg += '  processing delay: %s' % mm.format_timedelta(proc_time)
         else:
+
             pause = timedelta(hours=1)
-            proc_span = granule.proc_date - previous_date
-            if previous_date is None or proc_span > pause:
-                if previous_date > datetime.fromtimestamp(0):
-                    orb_msg = ':snail: _Reprocessed orbit_ from %s: %d' % (self.args.facility, granule.orbit)
-                else:
-                    orb_msg = ':earth_americas: New orbit from %s: %d' % (self.args.facility, granule.orbit)
+
+            # post new orbit messasge
+            orbit_proc_time = self.conn.get_orbit_proctime(granule)
+            if orbit_proc_time is None:
+                orb_msg = ':earth_americas: New orbit from %s: %d' % (self.args.facility, granule.orbit)
+            elif orbit_proc_time + pause < granule.proc_date:
+                orb_msg = ':snail: _Reprocessed orbit_ from %s: %d' % (self.args.facility, granule.orbit)
+
+            if orb_msg:
                 orb_msg += '\n  First granule: %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
                 self.mattermost.post(orb_msg)
 
-            if granule.channel in ('GMTCO', 'GITCO'):
-                q = self.conn.execute('SELECT COUNT(*) FROM sighting WHERE granule_date = ?' +
-                                      ' AND granule_channel = ? AND success = ? AND source = ?',
-                                      (granule.start, granule.channel, True, self.args.facility))
-                count = q.fetchone()[0]
-                granule_span = mm.format_span(granule.start, granule.end)
-                if count > 1:
-                    msg = ':snail: _Reprocessed granule_ from %s: %s\n' % (self.args.facility, granule_span)
-                else:
-                    msg = ':satellite: New granule from %s: %s\n' % (self.args.facility, granule_span)
+            # post new granule message
+            granule_span = mm.format_span(granule.start, granule.end)
+            granule_proc_time = self.conn.get_granule_proctime(granule, self.args.facility)
+            if granule_proc_time is None:
+                msg = ':satellite: New granule from %s: %s\n' % (self.args.facility, granule_span)
+            elif granule_proc_time + pause < granule.proc_date:
+                msg = ':snail: _Reprocessed granule_ from %s: %s\n' % (self.args.facility, granule_span)
 
+            if msg:
                 msg += '  processing delay:  %s\n' % mm.format_timedelta(proc_time)
                 msg += '  transfer delay:  %s\n' % mm.format_timedelta(trans_time)
                 msg += '  granule length: %s' % mm.format_timedelta(granule.end - granule.start)
 
-        if msg:
-            if message:
-                msg += "\n  message: %s" % message
+                if message:
+                    msg += "\n  message: %s" % message
 
-            # msg += '  host: %s' % self.hostname
             self.mattermost.post(msg)
+            self.conn.insert_obs(self, self.args.facility, granule, sight_date, size, status_code, success)
+
 
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
@@ -307,26 +292,6 @@ class MirrorGina(object):
             c.close()
         m.close()
         self.conn.close()
-
-
-def get_db_conn():
-    conn = sqlite3.connect(DB_FILE, detect_types=sqlite3.PARSE_DECLTYPES)
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS sighting (
-                    source text,
-                    granule_date timestamp, 
-                    granule_channel text,
-                    orbit int,
-                    sight_date timestamp, 
-                    proc_date timestamp, 
-                    size int,
-                    status_code int,
-                    success int,
-                    PRIMARY KEY (source, granule_date, granule_channel, proc_date));''')
-
-    conn.commit()
-
-    return conn
 
 
 # Get args
