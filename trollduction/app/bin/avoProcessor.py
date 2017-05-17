@@ -5,8 +5,8 @@ from posttroll.subscriber import Subscribe
 from posttroll.message import datetime_encoder
 from pprint import pprint
 from mpop.satellites import PolarFactory
-import datetime
-import dateutil.parser
+from datetime import timedelta, datetime
+from dateutil import parser
 from mpop.utils import debug_on
 from trollsched.satpass import Pass
 from mpop.projector import get_area_def
@@ -37,25 +37,23 @@ from mpop.projector import get_area_def
 #     else:
 #         raise Exception('Unknown {}'.format(_spec_type))
 
-
+ORBIT_SLACK = timedelta(minutes=30)
 def main():
     with Subscribe('', "pytroll://ir108-EARS/Suomi-NPP/viirs/1b", True) as sub:
         for msg in sub.recv():
             datas = json.dumps(msg.data, default=datetime_encoder)
             data = json.loads(datas)
             pprint(data)
-            # platform_name = data["platform_name"]
+            platform_name = data["platform_name"]
             # orbit = data["orbit_number"]
-            start_date = dateutil.parser.parse(data["start_date"])
-            start_time = dateutil.parser.parse(data["collection"][0]["start_time"])
-            start_time = datetime.datetime.combine(start_date, start_time.time())
-
-            print "START: %s" + str(start_time)
-            print 'START: %s' % type(start_time)
+            start_date = parser.parse(data["start_date"])
+            print "START: %s" + str(start_date)
+            start = start_date - ORBIT_SLACK
+            end = start_date + ORBIT_SLACK
             # print "END: " + str(end_time) + "\n"
-            # overpass = Pass(platform_name, start_time, end_time)
-            # coverage = overpass.area_coverage(get_area_def("AKSC")) * 100
-            # print "COVERAGE: " + str(coverage) + "%\n"
+            overpass = Pass(platform_name, start, end)
+            coverage = overpass.area_coverage(get_area_def("AKSC")) * 100
+            print "COVERAGE: " + str(coverage) + "%\n"
             #
             # global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", end_time, orbit)
             # global_data.load(["M15"], time_interval=(start_time, end_time))
