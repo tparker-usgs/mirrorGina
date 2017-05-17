@@ -16,7 +16,7 @@ import logging
 
 class Mattermost(object):
     def __init__(self, verbose=False):
-        self.logger = self._setup_logging(verbose)
+        self.logger = setup_logging(verbose)
 
         self.server_url = os.environ['MATTERMOST_SERVER_URL']
         self.logger.debug("Mattermost server URL: " + self.server_url)
@@ -43,43 +43,47 @@ class Mattermost(object):
         self.logger.debug(l)
         # self.mattermostUserId = l.json()["id"]
 
-    def _setup_logging(self, verbose):
-        logger = logging.getLogger('Mattermost')
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
-
-        if verbose:
-            logging.getLogger().setLevel(logging.DEBUG)
-            logger.info("Verbose logging")
-        else:
-            logging.getLogger().setLevel(logging.INFO)
-
-        return logger
-
     def post(self, message):
         """
-        Post a message to Mattermost. Adapted from http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
+        Post a message to Mattermost. Adapted from 
+        http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
         :return: 
         """
-        self.logger.debug("Posting message to mattermost: " + message)
+        self.logger.debug("Posting message to mattermost: %s", message)
         post_data = json.dumps({
                        'user_id': self.user_id,
                        'channel_id': self.channel_id,
                        'message': message,
                        'create_at': 0,
                    })
-        url = self.server_url + '/api/v3/teams/' + self.team_id + '/channels/' + self.channel_id + '/posts/create'
-        r = self.matterMostSession.post(self.server_url + '/api/v3/teams/' + self.team_id + '/channels/' + self.channel_id + '/posts/create', data=post_data)
+        url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
+              % (self.server_url, self.team_id, self.channel_id)
+        r = self.matterMostSession.post(url, data=post_data)
 
         if r.status_code == 200:
             self.logger.debug(r.content)
         else:
             self.logger.warn(r.content)
+
+
+def setup_logging(verbose):
+    logger = logging.getLogger('Mattermost')
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    if verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.info("Verbose logging")
+    else:
+        logging.getLogger().setLevel(logging.INFO)
+
+    return logger
+
 
 def format_timedelta(timedelta):
     seconds = timedelta.total_seconds()
@@ -96,13 +100,13 @@ def format_timedelta(timedelta):
     if hours > 0:
         timestring += '%dh ' % hours
 
-
     if minutes > 0:
         timestring += '%dm ' % minutes
 
     timestring += '%ds' % seconds
 
     return timestring
+
 
 def format_span(start, end):
     time_string = start.strftime('%m/%d/%Y %H:%M:%S - ')

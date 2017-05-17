@@ -1,6 +1,7 @@
 import sqlite3
-from datetime import datetime
+# from datetime import datetime
 from dateutil import parser
+
 
 class Db(object):
     def __init__(self, db_file):
@@ -14,13 +15,13 @@ class Db(object):
 
     def get_orbit_proctime(self, facility, granule):
         """
-        Find the most recent protime for a given orbit, reduargless of granule.
-        
+        docstring
+        :param facility: 
         :param granule: 
         :return: 
         """
-        q = self.conn.execute("SELECT MAX(proc_date) FROM sighting WHERE orbit = ? AND success = ? " 
-                              "AND source = ?",
+        q = self.conn.execute('''SELECT MAX(proc_date) FROM sighting 
+                                 WHERE orbit = ? AND success = ? AND source = ?''',
                               (granule.orbit, True, facility))
         r = q.fetchone()
         if r is None or r[0] is None:
@@ -33,11 +34,12 @@ class Db(object):
         """
         Find the most recent proctime for a given channel, reguardless of band.
         
+        :param facility: 
         :param granule: 
         :return: 
         """
-        q = self.conn.execute("SELECT MAX(proc_date) FROM sighting WHERE orbit = ? AND success = ? "
-                              "AND source = ?",
+        q = self.conn.execute('''SELECT MAX(proc_date) FROM sighting 
+                                 WHERE orbit = ? AND success = ? AND source = ?''',
                               (granule.orbit, True, facility))
         r = q.fetchone()
         if r is None or r[0] is None:
@@ -57,17 +59,23 @@ class Db(object):
         :return: 
         """
 
-        q = self.conn.execute('''SELECT count FROM sighting WHERE source = ? AND granule_date = ? AND granule_channel = ? AND proc_date = ?''', (facility, granule.start, granule.channel, granule.proc_date))
+        sql = '''SELECT count FROM sighting 
+                 WHERE source = ? AND granule_date = ? 
+                 AND granule_channel = ? AND proc_date = ?'''
+        q = self.conn.execute(sql, (facility, granule.start, granule.channel, granule.proc_date))
         r = q.fetchone()
         if r is None:
-            self.conn.execute('''INSERT INTO sighting 
-                            (source, granule_date, granule_channel, orbit, sight_date, proc_date, 
-                            status_code, count, success) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)''',
-                              (facility, granule.start, granule.channel, granule.orbit,
-                               sight_date, granule.proc_date, status_code, success))
+            sql = '''INSERT INTO sighting 
+                     (source, granule_date, granule_channel, orbit, sight_date, 
+                      proc_date, status_code, count, success) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)'''
+            self.conn.execute(sql, (facility, granule.start, granule.channel, granule.orbit,
+                                    sight_date, granule.proc_date, status_code, success))
         else:
-            self.conn.execute('''UPDATE sighting set count = ?, status_code = ?, success = ? WHERE source = ? AND granule_date = ? and granule_channel = ? and proc_date = ?)''',
-                            (r[0] + 1, status_code, success, granule.source, granule.start, granule.channel, granule.proc_date))
+            sql = '''UPDATE sighting set count = ?, status_code = ?, success = ? 
+                     WHERE source = ? AND granule_date = ? and granule_channel = ? and proc_date = ?)'''
+            self.conn.execute(sql, (r[0] + 1, status_code, success, granule.source, granule.start,
+                                    granule.channel, granule.proc_date))
 
         self.conn.commit()
 
@@ -75,7 +83,8 @@ class Db(object):
         q = self.conn.execute('SELECT COUNT(*) FROM sighting WHERE granule_date = ?' +
                               ' AND granule_channel = ? AND success = ? AND source = ?',
                               (granule.start, granule.channel, True, facility))
-        count = q.fetchone()[0]
+
+        return q.fetchone()[0]
 
     def close(self):
         self.conn.close()

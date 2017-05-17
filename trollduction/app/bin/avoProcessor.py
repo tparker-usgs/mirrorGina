@@ -26,7 +26,7 @@ from mpop.projector import get_area_def
 #             return {"val": str(obj), "_spec_type": "decimal"}
 #         else:
 #             return super().default(obj)
-
+#
 # def object_hook(obj):
 #     _spec_type = obj.get('_spec_type')
 #     if not _spec_type:
@@ -47,13 +47,19 @@ def main():
             platform_name = data["platform_name"]
             # orbit = data["orbit_number"]
             start_date = parser.parse(data["start_date"])
-            print "START: %s" + str(start_date)
-            start = start_date - ORBIT_SLACK
-            end = start_date + ORBIT_SLACK
-            # print "END: " + str(end_time) + "\n"
-            overpass = Pass(platform_name, start, end)
-            coverage = overpass.area_coverage(get_area_def("AKSC")) * 100
-            print "COVERAGE: " + str(coverage) + "%\n"
+            print "START: %s" % start_date
+            #start = start_date - ORBIT_SLACK
+            #end = start_date + ORBIT_SLACK
+            start = start_date
+            end = start_date + timedelta(minutes=1)
+            print ("start %s :: %s" % (start, type(start)))
+            print ("end %s :: %s" % (end, type(end)))
+            # print "END: %s" % end_time)
+            overpass = Pass(platform_name, start, end, instrument='viirs')
+            coverage = overpass.area_coverage(get_area_def("AKSC")) 
+            #coverage = overpass.area_coverage(get_area_def("AKSC")) * 100
+
+            #print "COVERAGE: %s" % coverage
             #
             # global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", end_time, orbit)
             # global_data.load(["M15"], time_interval=(start_time, end_time))
