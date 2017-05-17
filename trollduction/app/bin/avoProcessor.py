@@ -18,49 +18,51 @@ from trollimage.colormap import rdbu
 from trollsched.satpass import Pass
 from mpop.projector import get_area_def
 
-# class MyJSONEncoder(json.JSONEncoder):
-#     def default(self, obj):
-#         if isinstance(obj, (datetime.datetime,)):
-#             return {"val": obj.isoformat(), "_spec_type": "datetime"}
-#         elif isinstance(obj, (decimal.Decimal,)):
-#             return {"val": str(obj), "_spec_type": "decimal"}
-#         else:
-#             return super().default(obj)
-#
-# def object_hook(obj):
-#     _spec_type = obj.get('_spec_type')
-#     if not _spec_type:
-#         return obj
-#
-#     if _spec_type in CONVERTERS:
-#         return CONVERTERS[_spec_type](obj['val'])
-#     else:
-#         raise Exception('Unknown {}'.format(_spec_type))
 
 ORBIT_SLACK = timedelta(minutes=30)
-
+GRANULE_SPAN = timedelta(seconds=85.4
+                         )
 def process_message(msg):
-    data = json.loads(msg)
+    '''
+    {u'dataset': [{u'uid': u'GMTCO_npp_d20170516_t2226438_e2228081_b28766_c20170516223539386762_cspp_dev.h5',
+                   u'uri': u'/data/viirs/sdr/uafgina/GMTCO_npp_d20170516_t2226438_e2228081_b28766_c20170516223539386762_cspp_dev.h5'},
+                  {u'uid': u'SVM05_npp_d20170516_t2226438_e2228081_b28766_c20170516223540162289_cspp_dev.h5',
+                   u'uri': u'/data/viirs/sdr/uafgina/SVM05_npp_d20170516_t2226438_e2228081_b28766_c20170516223540162289_cspp_dev.h5'}],
+     u'end_decimal': 1,
+     u'end_time': u'2017-05-16T22:28:08.100000',
+     u'orbit_number': 28766,
+     u'orig_platform_name': u'npp',
+     u'platform_name': u'Suomi-NPP',
+     u'proctime': u'2017-05-16T22:35:39.386762',
+     u'sensor': [u'viirs'],
+     u'start_date': u'2017-05-16T22:26:43',
+     u'start_decimal': 8,
+     u'start_time': u'2017-05-16T22:26:43.800000'}
+    '''
+
+    datas = json.dumps(msg.data, default=datetime_encoder)
+    print("datas: %s : %s" % (type(datas), datas))
+    data = json.loads(datas)
+    print("datas: %s " % type(data))
     pprint(data)
     platform_name = data["platform_name"]
-    start_date = parser.parse(data["start_date"])
-    print "START: %s" % start_date
-    start = start_date
-    end = start_date + timedelta(minutes=1)
+    start = parser.parse(data["start_date"])
+    end = start + GRANULE_SPAN
+    start -= ORBIT_SLACK
+
     print ("start %s :: %s" % (start, type(start)))
     print ("end %s :: %s" % (end, type(end)))
-    # print "END: %s" % end_time)
 
     overpass = Pass(platform_name, start, end, instrument='viirs')
     coverage = overpass.area_coverage(get_area_def("AKSC"))
-
     print "COVERAGE: %f" % coverage
-    #
-    # global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", end_time, orbit)
-    # global_data.load(["M15"], time_interval=(start_time, end_time))
-    # local_data = global_data.project("AKSC", mode="nearest")
-    # img = local_data.iamge
-    # img.save("/tmp/out.png")
+
+    global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit"])
+    global_data.load(global_data.image.ir108.prerequisites, time_interval=(start, end))
+    local_data = global_data.project("AKSC")
+
+    img = global_data.image.avoir()
+    img.save("/tmp/img.png")
 
 
 def main():

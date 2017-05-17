@@ -11,9 +11,9 @@ def avoir(self):
     """Make a black and white image of the IR 10.8um channel (320m).
        Modeled after mpop.instruments.viirs.ir108
     """
-    self.check_channels("M15")
+    self.check_channels("M05")
 
-    img = geo_image.GeoImage(self["M15"].data,
+    img = geo_image.GeoImage(self["M05"].data,
                                 self.area,
                                 self.time_slot,
                                 fill_value=0,
@@ -31,6 +31,6 @@ def avoir(self):
 
     return img
 
-avoir.prerequisites = set(["M15"])
+avoir.prerequisites = set(["M05"])
 
 viirs = [avoir]
