@@ -65,4 +65,4 @@ WORKDIR /app
 
 ENV PPP_CONFIG_DIR=/app/trollConfig HOME=/home/tscan PYTHONPATH=/app/compositors LOG_DIR=/data/logs
 
-CMD source /app/env.sh && /usr/local/bin/supervisord
+CMD ["/usr/local/bin/supervisord"]
