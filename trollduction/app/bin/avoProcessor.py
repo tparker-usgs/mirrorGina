@@ -38,34 +38,35 @@ from mpop.projector import get_area_def
 #         raise Exception('Unknown {}'.format(_spec_type))
 
 ORBIT_SLACK = timedelta(minutes=30)
+
+def process_message(msg):
+    data = json.loads(msg)
+    pprint(data)
+    platform_name = data["platform_name"]
+    start_date = parser.parse(data["start_date"])
+    print "START: %s" % start_date
+    start = start_date
+    end = start_date + timedelta(minutes=1)
+    print ("start %s :: %s" % (start, type(start)))
+    print ("end %s :: %s" % (end, type(end)))
+    # print "END: %s" % end_time)
+
+    overpass = Pass(platform_name, start, end, instrument='viirs')
+    coverage = overpass.area_coverage(get_area_def("AKSC"))
+
+    print "COVERAGE: %f" % coverage
+    #
+    # global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", end_time, orbit)
+    # global_data.load(["M15"], time_interval=(start_time, end_time))
+    # local_data = global_data.project("AKSC", mode="nearest")
+    # img = local_data.iamge
+    # img.save("/tmp/out.png")
+
+
 def main():
     with Subscribe('', "pytroll://ir108-EARS/Suomi-NPP/viirs/1b", True) as sub:
         for msg in sub.recv():
-            datas = json.dumps(msg.data, default=datetime_encoder)
-            data = json.loads(datas)
-            pprint(data)
-            platform_name = data["platform_name"]
-            # orbit = data["orbit_number"]
-            start_date = parser.parse(data["start_date"])
-            print "START: %s" % start_date
-            #start = start_date - ORBIT_SLACK
-            #end = start_date + ORBIT_SLACK
-            start = start_date
-            end = start_date + timedelta(minutes=1)
-            print ("start %s :: %s" % (start, type(start)))
-            print ("end %s :: %s" % (end, type(end)))
-            # print "END: %s" % end_time)
-            overpass = Pass(platform_name, start, end, instrument='viirs')
-            coverage = overpass.area_coverage(get_area_def("AKSC")) 
-            #coverage = overpass.area_coverage(get_area_def("AKSC")) * 100
-
-            #print "COVERAGE: %s" % coverage
-            #
-            # global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", end_time, orbit)
-            # global_data.load(["M15"], time_interval=(start_time, end_time))
-            # local_data = global_data.project("AKSC", mode="nearest")
-            # img = local_data.iamge
-            # img.save("/tmp/out.png")
+            process_message(msg)
 
 
 if __name__ == '__main__':
