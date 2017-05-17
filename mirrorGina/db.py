@@ -39,8 +39,8 @@ class Db(object):
         :return: 
         """
         q = self.conn.execute('''SELECT MAX(proc_date) FROM sighting 
-                                 WHERE orbit = ? AND success = ? AND source = ?''',
-                              (granule.orbit, True, facility))
+                                 WHERE start = ? AND success = ? AND source = ?''',
+                              (granule.start, True, facility))
         r = q.fetchone()
         if r is None or r[0] is None:
             return None
