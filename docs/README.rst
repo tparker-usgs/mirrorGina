@@ -43,3 +43,5 @@ Mattermost Usage
 There's too many channels
 -------------------------
 Create a list of just your frequently used channels. Clicking the star near the channel title will place that channel in a favorites group at the top of the channel list.
+
+Can I stop
