@@ -22,8 +22,9 @@ import os.path
 
 
 ORBIT_SLACK = timedelta(minutes=30)
-GRANULE_SPAN = timedelta(seconds=85.4
-                         )
+GRANULE_SPAN = timedelta(seconds=85.4)
+PNG_DIR = '/data/viirs/png'
+
 def process_message(msg):
     '''
     {u'dataset': [{u'uid': u'GMTCO_npp_d20170516_t2226438_e2228081_b28766_c20170516223539386762_cspp_dev.h5',
