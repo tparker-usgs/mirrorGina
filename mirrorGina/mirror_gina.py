@@ -46,8 +46,8 @@ FACILITIES = ('uafgina', 'gilmore')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products'
             + '&facilities[]=uafgina')
-OUT_DIR = os.environ['OUT_DIR']
-DB_FILE = OUT_DIR + '/gina.db'
+OUT_DIR = os.path.join(os.environ['BASE_DIR'], 'data')
+DB_DIR = os.path.join(os.environ['BASE_DIR'], 'db')
 
 
 class MirrorGina(object):
@@ -76,7 +76,7 @@ class MirrorGina(object):
             self.logger.debug("Making out dir " + self.out_path)
             os.makedirs(self.out_path)
 
-        self.conn = Db(DB_FILE)
+        self.conn = Db(DB_DIR)
         self.mattermost = mm.Mattermost(verbose=True)
         # self.mattermost.set_log_level(logging.DEBUG)
 

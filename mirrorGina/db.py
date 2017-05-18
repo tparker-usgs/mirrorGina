@@ -1,7 +1,9 @@
 import sqlite3
+import os
 # from datetime import datetime
 from dateutil import parser
 
+SCHEMA_VERSION = 2
 
 class Db(object):
     def __init__(self, db_file):
@@ -39,7 +41,7 @@ class Db(object):
         :return: 
         """
         q = self.conn.execute('''SELECT MAX(proc_date) FROM sighting 
-                                 WHERE start = ? AND success = ? AND source = ?''',
+                                 WHERE granule_date = ? AND success = ? AND source = ?''',
                               (granule.start, True, facility))
         r = q.fetchone()
         if r is None or r[0] is None:
@@ -90,13 +92,18 @@ class Db(object):
         self.conn.close()
 
 
-def get_db_conn(db_file):
+def get_db_conn(db_dir):
     """
     Connect to a sqlite3 database file. Create the database if needed. 
     Not using foreign key constraints to maximize compatibility.
     :param db_file: The database file to connect to 
     :return: The connection object
     """
+
+    if not os.path.exists(db_dir):
+        os.makedirs(db_dir)
+
+    db_file = os.path.join(db_dir, 'viirs-v%d.db' % SCHEMA_VERSION)
     conn = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES)
     cursor = conn.cursor()
 
