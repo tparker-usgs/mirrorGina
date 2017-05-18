@@ -189,6 +189,8 @@ class MirrorGina(object):
 
             if orb_msg:
                 orb_msg += '\n  First granule: %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
+                count = self.conn.get_orbit_granule_count(granule.orbit - 1, self.args.facility)
+                orb_msg += '\n  Granules seen from orbit %d: %d' % (granule.orbit - 1, count)
                 self.mattermost.post(orb_msg)
 
             # post new granule message

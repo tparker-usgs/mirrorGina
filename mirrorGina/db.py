@@ -5,6 +5,7 @@ from dateutil import parser
 
 SCHEMA_VERSION = 2
 
+
 class Db(object):
     def __init__(self, db_file):
         """
@@ -49,6 +50,21 @@ class Db(object):
         else:
             # parse value, SQLITE type conversion doesn't seem to work with MAX
             return parser.parse(r[0])
+
+    def get_orbit_granule_count(self, orbit, facility):
+        """
+
+        :param orbit: 
+        :return: 
+        """
+        q = self.conn.execute('''SELECT count(*) FROM sighting 
+                                 WHERE orbit = ? AND source = ?''',
+                              (orbit, facility))
+        r = q.fetchone()
+        if r is None:
+            return None
+        else:
+            return r[0]
 
     def insert_obs(self, facility, granule, sight_date, status_code, success):
         """
