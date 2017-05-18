@@ -57,8 +57,10 @@ class Db(object):
         :param orbit: 
         :return: 
         """
-        q = self.conn.execute('''SELECT count(*) FROM sighting 
-                                 WHERE orbit = ? AND source = ?''',
+        q = self.conn.execute('''SELECT count(*) 
+                                 FROM (SELECT DISTINCT granule_date 
+                                       FROM sighting WHERE orbit = ? 
+                                       AND source = ?)''',
                               (orbit, facility))
         r = q.fetchone()
         if r is None:
