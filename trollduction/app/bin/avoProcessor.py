@@ -17,6 +17,8 @@ import aggdraw
 from trollimage.colormap import rdbu
 from trollsched.satpass import Pass
 from mpop.projector import get_area_def
+import os
+import os.path
 
 
 ORBIT_SLACK = timedelta(minutes=30)
@@ -61,8 +63,11 @@ def process_message(msg):
     global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
     local_data = global_data.project("AKSC")
 
-    img = global_data.image.avoir()
-    img.save("/tmp/img.png")
+    img = local_data.image.avoir()
+    filename = os.path.join(PNG_DIR, "AKSC-ir-%s.png" % parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M'))
+    print("Saving to %s" % filename)
+    img.save(filename)
+
 
 
 def main():
