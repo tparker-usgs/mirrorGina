@@ -17,7 +17,7 @@ def avoir(self):
                                 self.area,
                                 self.time_slot,
                                 fill_value=0,
-                                mode="L",
+                                mode="RGB",
                                 crange=(-70 + 273.15, 57.5 + 273.15))
 
     # trim data to -65 - 30 c
@@ -27,7 +27,7 @@ def avoir(self):
     img.enhance(inverse=True)
 
     # couldn't get this working in the l2processor config
-    img.add_overlay(color=(255,255,255))
+    img.add_overlay(color=(218,165,32))
 
     return img
 
