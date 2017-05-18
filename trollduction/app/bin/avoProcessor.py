@@ -57,8 +57,8 @@ def process_message(msg):
     coverage = overpass.area_coverage(get_area_def("AKSC"))
     print "COVERAGE: %f" % coverage
 
-    global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit"])
-    global_data.load(global_data.image.ir108.prerequisites, time_interval=(start, end))
+    global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
+    global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
     local_data = global_data.project("AKSC")
 
     img = global_data.image.avoir()
