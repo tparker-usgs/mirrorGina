@@ -38,14 +38,12 @@ INSTRUMENTS = {'viirs': {
     'name': 'viirs',
     'level': 'level1',
     'out_path': 'viirs/sdr',
-    # 'match':'/(SVM02|SVM03|SVM04|SVM05|SVM14|SVM15|SVM16|GMTCO)_'
     'match': '/(SVM05|GMTCO)_'
     }}
 
 FACILITIES = ('uafgina', 'gilmore')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
-            + '?action=index&commit=Get+Products&controller=products'
-            + '&facilities[]=uafgina')
+            + '?action=index&commit=Get+Products&controller=products')
 OUT_DIR = os.path.join(os.environ['BASE_DIR'], 'data')
 DB_DIR = os.path.join(os.environ['BASE_DIR'], 'db')
 
@@ -241,12 +239,10 @@ class MirrorGina(object):
                 c.filename = filename
                 c.url = url
                 c.md5 = new_file['md5sum']
-            # Run the internal curl state machine for the multi stack
             while 1:
                 ret, num_handles = m.perform()
                 if ret != pycurl.E_CALL_MULTI_PERFORM:
                     break
-            # Check for curl objects which have terminated, and add them to the freelist
             while 1:
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
@@ -280,9 +276,7 @@ class MirrorGina(object):
                 num_processed += len(ok_list) + len(err_list)
                 if num_q == 0:
                     break
-            # Currently no more I/O is pending, could do something in the meantime
-            # (display a progress bar, etc.).
-            # We just call select() to sleep until some more data is available.
+
             m.select(1.0)
 
         # Cleanup
@@ -296,7 +290,6 @@ class MirrorGina(object):
         self.conn.close()
 
 
-# Get args
 def arg_parse():
 
     parser = argparse.ArgumentParser()
