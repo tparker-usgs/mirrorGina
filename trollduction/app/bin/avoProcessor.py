@@ -27,7 +27,7 @@ PNG_DIR = '/data/viirs/png'
 
 class AvoProcessor(object):
     def __init__(self):
-        mattermost = mm.Mattermost(verbose=True)
+        self.mattermost = mm.Mattermost(verbose=True)
 
     def process_message(self, msg):
         '''
@@ -75,8 +75,9 @@ class AvoProcessor(object):
             print("Saving to %s" % filepath)
             img.save(filepath)
 
-            msg = 'New image for sector %s: %s' % (sector, filename)
-            msg += '\n  coverage: %d\%' % int(coverage * 100)
+            msg = ':camera: New image for sector %s: %s' % (sector, filename)
+            msg += '\n  coverage: %d' % int(coverage * 100)
+            print "posting %s" % msg
             self.mattermost.post(msg)
 
 

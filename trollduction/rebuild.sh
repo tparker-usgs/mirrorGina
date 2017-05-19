@@ -4,4 +4,4 @@
 docker build -t trollduction . 
 docker stop trollduction
 docker rm trollduction 
-docker run --detach=true --volumes-from data --name trollduction trollduction
+docker run --detach=true --volumes-from data --env-file=/home/tparker/private/trollduction.env --name trollduction trollduction
