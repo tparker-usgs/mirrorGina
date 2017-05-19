@@ -124,6 +124,16 @@ REGION: AKSH {
 	AREA_EXTENT:    (-125000, -100000, 125000, 100000)
 };
 
+
+REGION: AKBO {
+	NAME:		Bogoslof
+	PCS_ID:		AKBO
+    PCS_DEF:        proj=laea, lat_0=54, lon_0=168, a=6371228.0, units=m
+	XSIZE:		1000
+	YSIZE:		800
+	AREA_EXTENT:    (-125000, -100000, 125000, 100000)
+};
+
 REGION: AKCE {
 	NAME:		Semisopochnoi
 	PCS_ID:		AKCE

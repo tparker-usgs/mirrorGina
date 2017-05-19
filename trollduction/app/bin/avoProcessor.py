@@ -40,6 +40,7 @@ SECTORS = ('AKSC',
            'AKPV',
            'AKVN',
            'AKSH',
+           'AKBO',
            'AKCE',
            'AKCH',
            'BERS',
@@ -84,36 +85,40 @@ class AvoProcessor(object):
         print ("end %s :: %s" % (end, type(end)))
 
         for sector in SECTORS:
+            sector_def = get_area_def(sector)
             overpass = Pass(platform_name, start, end, instrument='viirs')
-            coverage = overpass.area_coverage(get_area_def(sector))
-            print "COVERAGE: %f" % coverage
+            coverage = overpass.area_coverage(sector_def)
+            overpass = Pass(platform_name, start - GRANULE_SPAN, end - GRANULE_SPAN, instrument='viirs')
+            previous_coverage = overpass.area_coverage(sector_def)
+            print "%s coverage: %f" % (sector, coverage)
 
+            if coverage < .1 or not coverage > previous_coverage:
+                continue
 
-            if coverage > .1:
-                global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
-                global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
-                local_data = global_data.project(sector)
+            global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
+            global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
+            local_data = global_data.project(sector)
 
-                img = local_data.image.avoir().pil_image()
+            img = local_data.image.avoir().pil_image()
 
-                dc = DecoratorAGG(img)
-                dc.align_bottom()
+            dc = DecoratorAGG(img)
+            dc.align_bottom()
 
-                font=aggdraw.Font(0xff0000ff,"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
-                colormap.greys.set_range(30, -65)
-                dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
-                dc.new_line()
-                dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start, font=font, height=30, extend=True, bg_opacity=255, bg='black')
+            font=aggdraw.Font(0xff0000ff,"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
+            colormap.greys.set_range(30, -65)
+            dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
+            dc.new_line()
+            dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start, font=font, height=30, extend=True, bg_opacity=255, bg='black')
 
-                filename = "%s-ir-%s.png" % (sector, parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M'))
-                filepath = os.path.join(PNG_DIR, filename)
-                print("Saving to %s" % filepath)
-                img.save(filepath)
+            filename = "%s-ir-%s.png" % (sector, parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M'))
+            filepath = os.path.join(PNG_DIR, filename)
+            print("Saving to %s" % filepath)
+            img.save(filepath)
 
-                msg = ':camera: New image: %s' % filename
-                msg += '\n  coverage: %d%%' % int(coverage * 100)
-                print "posting %s" % msg
-                self.mattermost.post(msg)
+            msg = ':camera: New image: %s' % filename
+            msg += '\n  coverage: %d%%' % int(coverage * 100)
+            print "posting %s" % msg
+            self.mattermost.post(msg)
 
 
 def main():
