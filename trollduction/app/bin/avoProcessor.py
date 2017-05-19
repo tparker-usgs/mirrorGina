@@ -60,14 +60,15 @@ def process_message(msg):
     coverage = overpass.area_coverage(get_area_def("AKSC"))
     print "COVERAGE: %f" % coverage
 
-    global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
-    global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
-    local_data = global_data.project("AKSC")
+    if coverage > .1:
+        global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
+        global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
+        local_data = global_data.project("AKSC")
 
-    img = local_data.image.avoir()
-    filename = os.path.join(PNG_DIR, "AKSC-ir-%s.png" % parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M'))
-    print("Saving to %s" % filename)
-    img.save(filename)
+        img = local_data.image.avoir()
+        filename = os.path.join(PNG_DIR, "AKSC-ir-%s.png" % parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M'))
+        print("Saving to %s" % filename)
+        img.save(filename)
 
 
 
