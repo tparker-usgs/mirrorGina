@@ -105,12 +105,12 @@ class AvoProcessor(object):
                 dc.new_line()
                 dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start, font=font, height=30, extend=True, bg_opacity=255, bg='black')
 
-                filename = "AKSC-ir-%s.png" % parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M')
+                filename = "%s-ir-%s.png" % (sector, parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M'))
                 filepath = os.path.join(PNG_DIR, filename)
                 print("Saving to %s" % filepath)
                 img.save(filepath)
-    
-                msg = ':camera: New image %s: %s' % (sector, filename)
+
+                msg = ':camera: New image: %s' % filename
                 msg += '\n  coverage: %d%%' % int(coverage * 100)
                 print "posting %s" % msg
                 self.mattermost.post(msg)
