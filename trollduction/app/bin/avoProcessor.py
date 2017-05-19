@@ -25,6 +25,29 @@ from trollimage import colormap
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 PNG_DIR = '/data/viirs/png'
+SECTORS = ('AKSC',
+           'AKAP',
+           'AKEA',
+           'AKSC',
+           'AKWA',
+           'RUKA',
+           'AKAL',
+           'AKGA',
+           'AKIN',
+           'AKSE',
+           'AKNP',
+           'AKCL',
+           'AKPV',
+           'AKVN',
+           'AKSH',
+           'AKCE',
+           'AKCH',
+           'BERS',
+           'AKNS',
+           'CNMI',
+           'RUKA2km',
+           'RUKI',
+           'RUNP')
 
 class AvoProcessor(object):
     def __init__(self):
@@ -57,40 +80,40 @@ class AvoProcessor(object):
         start = parser.parse(data["start_date"])
         end = start + GRANULE_SPAN
         start -= ORBIT_SLACK
-        sector = 'AKSC'
         print ("start %s :: %s" % (start, type(start)))
         print ("end %s :: %s" % (end, type(end)))
 
-        overpass = Pass(platform_name, start, end, instrument='viirs')
-        coverage = overpass.area_coverage(get_area_def(sector))
-        print "COVERAGE: %f" % coverage
+        for sector in SECTORS:
+            overpass = Pass(platform_name, start, end, instrument='viirs')
+            coverage = overpass.area_coverage(get_area_def(sector))
+            print "COVERAGE: %f" % coverage
 
 
-        if coverage > .1:
-            global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
-            global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
-            local_data = global_data.project(sector)
+            if coverage > .1:
+                global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
+                global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
+                local_data = global_data.project(sector)
 
-            img = local_data.image.avoir().pil_image()
+                img = local_data.image.avoir().pil_image()
 
-            dc = DecoratorAGG(img)
-            dc.align_bottom()
+                dc = DecoratorAGG(img)
+                dc.align_bottom()
 
-            font=aggdraw.Font(0xff0000ff,"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
-            colormap.greys.set_range(30, -65)
-            dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
-            dc.new_line()
-            dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start, font=font, height=30, extend=True, bg_opacity=255, bg='black')
+                font=aggdraw.Font(0xff0000ff,"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
+                colormap.greys.set_range(30, -65)
+                dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
+                dc.new_line()
+                dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start, font=font, height=30, extend=True, bg_opacity=255, bg='black')
 
-            filename = "AKSC-ir-%s.png" % parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M')
-            filepath = os.path.join(PNG_DIR, filename)
-            print("Saving to %s" % filepath)
-            img.save(filepath)
-
-            msg = ':camera: New image for sector %s: %s' % (sector, filename)
-            msg += '\n  coverage: %d' % int(coverage * 100)
-            print "posting %s" % msg
-            self.mattermost.post(msg)
+                filename = "AKSC-ir-%s.png" % parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M')
+                filepath = os.path.join(PNG_DIR, filename)
+                print("Saving to %s" % filepath)
+                img.save(filepath)
+    
+                msg = ':camera: New image %s: %s' % (sector, filename)
+                msg += '\n  coverage: %d%%' % int(coverage * 100)
+                print "posting %s" % msg
+                self.mattermost.post(msg)
 
 
 def main():
