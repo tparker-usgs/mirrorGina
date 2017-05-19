@@ -38,7 +38,7 @@ INSTRUMENTS = {'viirs': {
     'name': 'viirs',
     'level': 'level1',
     'out_path': 'viirs/sdr',
-    'match': '/(SVM05|GMTCO)_'
+    'match': '/(SVM15|GMTCO)_'
     }}
 
 FACILITIES = ('uafgina', 'gilmore')
