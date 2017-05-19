@@ -64,6 +64,7 @@ class AvoProcessor(object):
         coverage = overpass.area_coverage(get_area_def(sector))
         print "COVERAGE: %f" % coverage
 
+
         if coverage > .1:
             global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
             global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
