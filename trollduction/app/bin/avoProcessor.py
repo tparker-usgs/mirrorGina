@@ -83,13 +83,13 @@ class AvoProcessor(object):
         start -= ORBIT_SLACK
         print ("start %s :: %s" % (start, type(start)))
         print ("end %s :: %s" % (end, type(end)))
+        overpass = Pass(platform_name, start, end, instrument='viirs')
+        previous_overpass = Pass(platform_name, start - GRANULE_SPAN, end - GRANULE_SPAN, instrument='viirs')
 
         for sector in SECTORS:
             sector_def = get_area_def(sector)
-            overpass = Pass(platform_name, start, end, instrument='viirs')
             coverage = overpass.area_coverage(sector_def)
-            overpass = Pass(platform_name, start - GRANULE_SPAN, end - GRANULE_SPAN, instrument='viirs')
-            previous_coverage = overpass.area_coverage(sector_def)
+            previous_coverage = previous_overpass.area_coverage(sector_def)
             print "%s coverage: %f" % (sector, coverage)
 
             if coverage < .1 or not coverage > previous_coverage:
