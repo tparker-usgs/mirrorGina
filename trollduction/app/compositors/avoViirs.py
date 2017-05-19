@@ -17,7 +17,7 @@ def avoir(self):
                                 self.area,
                                 self.time_slot,
                                 fill_value=0,
-                                mode="RGB",
+                                mode="L",
                                 crange=(-70 + 273.15, 57.5 + 273.15))
 
     # trim data to -65 - 30 c
