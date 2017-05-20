@@ -1,5 +1,5 @@
-PATH=/app/bin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-PYTHONPATH=/app/lib:$PYTHONPATH
+PATH=/app/dataSources/bin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+PYTHONPATH=/app/dataSources/lib:$PYTHONPATH
 #
 */5 * * * * root cd /app/dataSources/viirs ; single.py -f /tmp/gina.flock -c ./mirror_gina.py viirs -v -n 5 -f uafgina > /data/logs/viirsMirror/viirsMirror-uafgina_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
 */5 * * * * root cd /app/dataSources/viirs ; sleep 120  ; single.py -f /tmp/gilmore.flock -c ./mirror_gina.py viirs -v -n 5 -f gilmore > /data/logs/viirsMirror/viirsMirror-gilmore_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1

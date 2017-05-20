@@ -5,8 +5,8 @@ chmod 644 cron-mirrorGina
 
 #systemctl stop mirrorGina.service && \
 
-docker build -t mirrorgina .
-docker stop mirrorgina 
-docker rm mirrorgina 
-docker run --detach=true --volumes-from data --env-file=/home/tparker/private/mirrorgina.env --name mirrorgina mirrorgina
+docker build -t datasources .
+docker stop datasources 
+docker rm datasources 
+docker run --detach=true --volumes-from data --env-file=/home/tparker/private/datasources.env --name datasources datasources
 

@@ -19,18 +19,16 @@ WORKDIR /usr/share/ca-certificates/extra
 ADD DOIRootCA2.cer DOIRootCA2.crt
 RUN echo "extra/DOIRootCA2.crt" >> /etc/ca-certificates.conf && update-ca-certificates
 
-WORKDIR /app/mirrorGina
+WORKDIR /app/dataSources
 ADD requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt # 1
 
-ADD single.py .
-ADD mirror_gina.py .
-ADD mattermost.py .
-ADD viirs.py .
-ADD db.py .
-ADD cron-mirrorGina /tmp/cron-mirrorGina
+ADD bin bin
+ADD viirs viirs
+ADD lib lib
+ADD cron-dataSources /tmp/cron-dataSources
 ADD run_crond.sh  .
 RUN chmod 755 run_crond.sh
 
 #CMD ["cron","-f"]
-CMD ["/app/mirrorGina/run_crond.sh"]
+CMD ["/app/dataSources/run_crond.sh"]
