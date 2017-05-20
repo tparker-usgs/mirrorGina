@@ -120,7 +120,7 @@ class AvoProcessor(object):
 
         proc_end = datetime.now()
         if len(images) < 1:
-            msg = ":hourglass: Granule covers no sectors. (%s)" %  start
+            msg = "### :hourglass: Granule covers no sectors. (%s)" %  start
         else:
             msg = "### :camera: New images"
             msg += "\n\n| Sector | Coverage (%) |"
