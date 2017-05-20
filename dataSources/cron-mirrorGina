@@ -1,0 +1,7 @@
+PATH=/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+#
+*/5 * * * * root cd /app/dataSources/viirs ; ./single.py -f /tmp/gina.flock -c ./mirror_gina.py viirs -v -n 5 -f uafgina > /data/logs/viirsMirror/viirsMirror-uafgina_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
+*/5 * * * * root cd /app/dataSources/viirs ; sleep 120  ; ./single.py -f /tmp/gilmore.flock -c ./mirror_gina.py viirs -v -n 5 -f gilmore > /data/logs/viirsMirror/viirsMirror-gilmore_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
+0 0 * * * root find /data/viirs/sdr -mtime +14 -exec rm {} \;
+0 0 * * * root find /data/logs -mtime +7 -exec rm {} \;
