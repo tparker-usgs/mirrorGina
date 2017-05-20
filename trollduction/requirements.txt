@@ -8,3 +8,5 @@ supervisor
 gdal
 netifaces
 python-dateutil
+pytz
+requests
