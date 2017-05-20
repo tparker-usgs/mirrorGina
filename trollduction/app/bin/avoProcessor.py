@@ -21,6 +21,7 @@ import os
 import os.path
 import mattermost as mm
 from trollimage import colormap
+import sys
 
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
@@ -136,7 +137,11 @@ def main():
     processor = AvoProcessor()
     with Subscribe('', "pytroll://ir108-EARS/Suomi-NPP/viirs/1b", True) as sub:
         for msg in sub.recv():
-            processor.process_message(msg)
+            try:
+                processor.process_message(msg)
+            except:  # catch *all* exceptions
+                e = sys.exc_info()[0]
+                processor.mattermost.post("Error: %s" % e)
 
 
 if __name__ == '__main__':
