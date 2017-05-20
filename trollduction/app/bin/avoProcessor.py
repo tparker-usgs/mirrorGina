@@ -129,7 +129,7 @@ class AvoProcessor(object):
             for (sector, coverage) in images:
                 msg += '\n| %s | %d |' % (sector, coverage)
         msg += "\n granule span: %s" % mm.format_span(start, end)
-        msg += '\n processing time: %s (%s)' % (mm.format_span(proc_start, proc_end), mm.format_timedelta(proc_end - proc_start))
+        msg += '\n processing time: %s (%s)' % (mm.format_timedelta(proc_end - proc_start), mm.format_span(proc_start, proc_end))
         msg += '\n accumulated delay: %s' % (mm.format_timedelta(proc_end - start))
         self.mattermost.post(msg)
 
