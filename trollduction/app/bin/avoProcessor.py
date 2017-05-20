@@ -141,7 +141,7 @@ def main():
                 processor.process_message(msg)
             except:  # catch *all* exceptions
                 e = sys.exc_info()[0]
-                processor.mattermost.post("Error: %s" % e)
+                processor.mattermost.post("### :x: Unexpected error: %s" % e)
 
 
 if __name__ == '__main__':
