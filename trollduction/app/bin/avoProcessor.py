@@ -124,6 +124,7 @@ class AvoProcessor(object):
             msg = "Granule covers no sectors. (%s)" %  start
         else:
             msg = ":camera: New images produced."
+            msg += "\n  granule start: %s" % start
             for (sector, coverage) in images:
                 msg += '\n  %s coverage: %d%%' % (sector, coverage)
         msg += '\n processing time: %s (%s)' % (mm.format_span(proc_start, proc_end), mm.format_timedelta(proc_end - proc_start))
