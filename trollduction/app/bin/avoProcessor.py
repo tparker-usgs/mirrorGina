@@ -71,7 +71,7 @@ class AvoProcessor(object):
          u'start_decimal': 8,
          u'start_time': u'2017-05-16T22:26:43.800000'}
         '''
-        proc_start = datetime()
+        proc_start = datetime.now()
         datas = json.dumps(msg.data, default=datetime_encoder)
         print("datas: %s : %s" % (type(datas), datas))
         data = json.loads(datas)
@@ -117,7 +117,7 @@ class AvoProcessor(object):
             img.save(filepath)
             images += (sector, coverage)
 
-        proc_end = datetime()
+        proc_end = datetime.now()
         if images is None:
             msg = "Granule covers no sectors. (%s)" %  start
         else:
