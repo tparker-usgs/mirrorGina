@@ -86,7 +86,7 @@ class AvoProcessor(object):
         overpass = Pass(platform_name, start, end, instrument='viirs')
         previous_overpass = Pass(platform_name, start - GRANULE_SPAN, end - GRANULE_SPAN, instrument='viirs')
 
-        images = None
+        images = []
         for sector in SECTORS:
             sector_def = get_area_def(sector)
             coverage = overpass.area_coverage(sector_def)
@@ -115,10 +115,12 @@ class AvoProcessor(object):
             filepath = os.path.join(PNG_DIR, filename)
             print("Saving to %s" % filepath)
             img.save(filepath)
+            if images is None:
+                images
             images += (sector, coverage)
 
         proc_end = datetime.now()
-        if images is None:
+        if len(images) < 1:
             msg = "Granule covers no sectors. (%s)" %  start
         else:
             msg = "New images produced."
