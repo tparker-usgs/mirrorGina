@@ -125,8 +125,10 @@ class AvoProcessor(object):
         else:
             msg = ":camera: New images produced."
             msg += "\n  granule start: %s" % start
+            msg += "\n| Sector | Coverage (%) |"
+            msg += "\n|:-------|:------------:|"
             for (sector, coverage) in images:
-                msg += '\n  %s coverage: %d%%' % (sector, coverage)
+                msg += '\n  * | %s | %d |' % (sector, coverage)
         msg += '\n processing time: %s (%s)' % (mm.format_span(proc_start, proc_end), mm.format_timedelta(proc_end - proc_start))
         msg += '\n accumulated delay: %s' % (mm.format_timedelta(proc_end - start))
         self.mattermost.post(msg)
