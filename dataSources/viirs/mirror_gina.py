@@ -196,19 +196,18 @@ class MirrorGina(object):
                 self.mattermost.post(orb_msg)
 
             # post new granule message
-            granule_span = mm.format_span(granule.start, granule.end)
-            granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
             if granule_proc_time is None:
-                msg = '### :satellite: New granule from %s: %s\n' % (self.args.facility, granule_span)
+                msg = '### :satellite: New granule from %s\n' % self.args.facility
             elif granule_proc_time + pause < granule.proc_date:
-                msg = '### :snail: _Reprocessed granule_ from %s: %s\n' % (self.args.facility, granule_span)
+                msg = '### :snail: _Reprocessed granule_ from %s\n' % self.args.facility
             else:
                 msg = None
 
             if msg:
+                msg += '**Granule span** %s (%s)\n' % (mm.format_span(granule.start, granule.end), mm.format_timedelta(granule.end - granule.start))
+                granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
                 msg += '**Processing delay** %s\n' % mm.format_timedelta(proc_time)
                 msg += '**Transfer delay** %s\n' % mm.format_timedelta(trans_time)
-                msg += '**Granule length** %s' % mm.format_timedelta(granule.end - granule.start)
 
                 if message:
                     msg += "\n**Message: %s" % message
