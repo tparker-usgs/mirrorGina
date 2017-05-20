@@ -7,7 +7,7 @@
 # can't use onbuild due to SSL visibility
 FROM python:2.7
 
-RUN apt-get update && apt-get -y install cron
+RUN apt-get update && apt-get -y install cron libhdf5-serial-dev
 
 WORKDIR /root/.pip
 ADD pip.conf .
