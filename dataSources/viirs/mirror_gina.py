@@ -181,7 +181,8 @@ class MirrorGina(object):
 
             # post new orbit messasge
             orbit_proc_time = self.conn.get_orbit_proctime(self.args.facility, granule)
-
+            granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
+            
             if orbit_proc_time is None:
                 orb_msg = '### :earth_americas: New orbit from %s: %d' % (self.args.facility, granule.orbit)
             elif orbit_proc_time + pause < granule.proc_date:
