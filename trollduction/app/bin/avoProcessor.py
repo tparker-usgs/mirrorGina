@@ -117,7 +117,7 @@ class AvoProcessor(object):
             img.save(filepath)
             if images is None:
                 images
-            images += (sector, coverage)
+            images.append((sector, coverage))
 
         proc_end = datetime.now()
         if len(images) < 1:
