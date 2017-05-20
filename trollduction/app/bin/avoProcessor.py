@@ -123,7 +123,7 @@ class AvoProcessor(object):
         if len(images) < 1:
             msg = "Granule covers no sectors. (%s)" %  start
         else:
-            msg = "New images produced."
+            msg = ":camera: New images produced."
             for (sector, coverage) in images:
                 msg += '\n  %s coverage: %d%%' % (sector, coverage)
         msg += '\n processing time: %s (%s)' % (mm.format_span(proc_start, proc_end), mm.format_timedelta(proc_end - proc_start))
