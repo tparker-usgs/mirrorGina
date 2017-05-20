@@ -124,8 +124,8 @@ class AvoProcessor(object):
             msg = "Granule covers no sectors. (%s)" %  start
         else:
             msg = "New images produced."
-            for image in images:
-                msg += '\n  %s coverage: %d%%' % image
+            for (sector, coverage) in images:
+                msg += '\n  %s coverage: %d%%' % (sector, coverage)
         msg += '\n processing time: %s (%s)' % (mm.format_span(proc_start, proc_end), mm.format_timedelta(proc_start - proc_end))
         self.mattermost.post(msg)
 
