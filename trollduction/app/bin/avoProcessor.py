@@ -28,7 +28,6 @@ PNG_DIR = '/data/viirs/png'
 SECTORS = ('AKSC',
            'AKAP',
            'AKEA',
-           'AKSC',
            'AKWA',
            'RUKA',
            'AKAL',
