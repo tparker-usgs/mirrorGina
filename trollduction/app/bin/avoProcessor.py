@@ -71,7 +71,7 @@ class AvoProcessor(object):
          u'start_decimal': 8,
          u'start_time': u'2017-05-16T22:26:43.800000'}
         '''
-
+        proc_start = datetime()
         datas = json.dumps(msg.data, default=datetime_encoder)
         print("datas: %s : %s" % (type(datas), datas))
         data = json.loads(datas)
@@ -86,6 +86,7 @@ class AvoProcessor(object):
         overpass = Pass(platform_name, start, end, instrument='viirs')
         previous_overpass = Pass(platform_name, start - GRANULE_SPAN, end - GRANULE_SPAN, instrument='viirs')
 
+        images = None
         for sector in SECTORS:
             sector_def = get_area_def(sector)
             coverage = overpass.area_coverage(sector_def)
@@ -114,12 +115,17 @@ class AvoProcessor(object):
             filepath = os.path.join(PNG_DIR, filename)
             print("Saving to %s" % filepath)
             img.save(filepath)
+            images += (sector, coverage)
 
-            msg = ':camera: New image: %s' % filename
-            msg += '\n  coverage: %d%%' % int(coverage * 100)
-            print "posting %s" % msg
-            self.mattermost.post(msg)
-
+        proc_end = datetime()
+        if images is None:
+            msg = "Granule covers no sectors. (%s)" %  start
+        else:
+            msg = "New images produced."
+            for image in images:
+                msg += '\n  %s coverage: %d%%' % image
+        msg += '\n processing time: %s (%s)' % (mm.format_span(proc_start, proc_end), mm.format_timedelta(proc_start - proc_end))
+        self.mattermost.post(msg)
 
 def main():
     processor = AvoProcessor()
