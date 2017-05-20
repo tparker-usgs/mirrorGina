@@ -117,7 +117,7 @@ class AvoProcessor(object):
             img.save(filepath)
             if images is None:
                 images
-            images.append((sector, coverage))
+            images.append((sector, coverage * 100))
 
         proc_end = datetime.now()
         if len(images) < 1:
@@ -126,7 +126,7 @@ class AvoProcessor(object):
             msg = "New images produced."
             for (sector, coverage) in images:
                 msg += '\n  %s coverage: %d%%' % (sector, coverage)
-        msg += '\n processing time: %s (%s)' % (mm.format_span(proc_start, proc_end), mm.format_timedelta(proc_start - proc_end))
+        msg += '\n processing time: %s (%s)' % (mm.format_span(proc_start, proc_end), mm.format_timedelta(proc_end - proc_start))
         self.mattermost.post(msg)
 
 def main():
