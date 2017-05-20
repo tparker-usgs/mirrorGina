@@ -214,7 +214,7 @@ class MirrorGina(object):
                 if message:
                     msg += "\n**Message: %s" % message
 
-        if 'msg' in locals():
+        if 'msg' in locals() and msg is not None:
             self.mattermost.post(msg)
             self.conn.insert_obs(self.args.facility, granule, sight_date, status_code, success)
 
