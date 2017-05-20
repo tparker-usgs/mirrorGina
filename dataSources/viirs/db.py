@@ -94,7 +94,7 @@ class Db(object):
         else:
             sql = '''UPDATE sighting set count = ?, status_code = ?, success = ? 
                      WHERE source = ? AND granule_date = ? and granule_channel = ? and proc_date = ?)'''
-            self.conn.execute(sql, (r[0] + 1, status_code, success, granule.source, granule.start,
+            self.conn.execute(sql, (r[0] + 1, status_code, success, facility, granule.start,
                                     granule.channel, granule.proc_date))
 
         self.conn.commit()
