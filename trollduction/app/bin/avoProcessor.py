@@ -122,7 +122,7 @@ class AvoProcessor(object):
         if len(images) < 1:
             msg = ":hourglass: Granule covers no sectors. (%s)" %  start
         else:
-            msg = "### :camera: New images produced."
+            msg = "### :camera: New images"
             msg += "\n\n| Sector | Coverage (%) |"
             msg += "\n|:-------|:------------:|"
             for (sector, coverage) in images:
