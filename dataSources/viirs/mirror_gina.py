@@ -254,24 +254,26 @@ class MirrorGina(object):
                     print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
                     status_code = c.getinfo(pycurl.HTTP_CODE)
                     c.fp.close()
-                    c.fp = None
-                    m.remove_handle(c)
-                    freelist.append(c)
                     file_md5 = hashlib.md5(open(c.filename, 'rb').read()).hexdigest()
                     self.logger.debug(str(c.md5) + " : " + str(file_md5))
 
                     if c.md5 == file_md5:
                         try:
-                            h5f = h5py.File(self.filename, 'r')
+                            h5f = h5py.File(c.filename, 'r')
                             success = True
                             errmsg = None
                         except:
                             success = False
                             errmsg = 'Good checksum, bad format.'
+                            os.unlink(c.filename)
                     else:
                         success = False
                         errmsg = 'Bad checksum'
+                        os.unlink(c.filename)
 
+                    c.fp = None
+                    m.remove_handle(c)
+                    freelist.append(c)
                     self._log_sighting(c.filename, status_code, success, message=errmsg)
 
                 for c, errno, errmsg in err_list:
@@ -286,6 +288,8 @@ class MirrorGina(object):
                 num_processed += len(ok_list) + len(err_list)
                 if num_q == 0:
                     break
+
+
 
             m.select(1.0)
 
