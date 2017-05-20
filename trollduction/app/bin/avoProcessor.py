@@ -122,14 +122,14 @@ class AvoProcessor(object):
         if len(images) < 1:
             msg = ":hourglass: Granule covers no sectors. (%s)" %  start
         else:
-            msg = ":camera: New images produced."
+            msg = "### :camera: New images produced."
             msg += "\n\n| Sector | Coverage (%) |"
             msg += "\n|:-------|:------------:|"
             for (sector, coverage) in images:
                 msg += '\n| %s | %d |' % (sector, coverage)
-        msg += "\n granule span: %s" % mm.format_span(start, end)
-        msg += '\n processing time: %s (%s)' % (mm.format_timedelta(proc_end - proc_start), mm.format_span(proc_start, proc_end))
-        msg += '\n accumulated delay: %s' % (mm.format_timedelta(proc_end - start))
+        msg += "\n**Granule span** %s" % mm.format_span(start, end)
+        msg += '\n**Processing time** %s (%s)' % (mm.format_timedelta(proc_end - proc_start), mm.format_span(proc_start, proc_end))
+        msg += '\n**Accumulated delay** %s' % (mm.format_timedelta(proc_end - start))
         self.mattermost.post(msg)
 
 def main():
