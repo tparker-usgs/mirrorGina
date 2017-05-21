@@ -93,7 +93,7 @@ class Db(object):
                                     sight_date, granule.proc_date, status_code, success))
         else:
             sql = '''UPDATE sighting set count = ?, status_code = ?, success = ? 
-                     WHERE source = ? AND granule_date = ? and granule_channel = ? and proc_date = ?)'''
+                     WHERE source = ? AND granule_date = ? and granule_channel = ? and proc_date = ?'''
             self.conn.execute(sql, (r[0] + 1, status_code, success, facility, granule.start,
                                     granule.channel, granule.proc_date))
 
