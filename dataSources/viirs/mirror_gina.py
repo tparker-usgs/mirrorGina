@@ -46,6 +46,7 @@ FACILITIES = ('uafgina', 'gilmore')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
 OUT_DIR = os.path.join(os.environ['BASE_DIR'], 'data')
+TMP_DIR = os.path.join(os.environ['BASE_DIR'], 'tmp')
 DB_DIR = os.path.join(os.environ['BASE_DIR'], 'db')
 
 
@@ -74,6 +75,11 @@ class MirrorGina(object):
         if not os.path.exists(self.out_path):
             self.logger.debug("Making out dir " + self.out_path)
             os.makedirs(self.out_path)
+
+        self.tmp_path = os.path.join(TMP_DIR, self._instrument['out_path'], self.args.facility)
+        if not os.path.exists(self.tmp_path):
+            self.logger.debug("Making out dir " + self.tmp_path)
+            os.makedirs(self.tmp_path)
 
         self.conn = Db(DB_DIR)
         self.mattermost = mm.Mattermost(verbose=True)
@@ -126,25 +132,25 @@ class MirrorGina(object):
         files = sorted(files, key=lambda k: k['url'], cmp=viirs.filename_comparator)
         return files
 
-    def path_from_url(self, url):
+    def path_from_url(self, base, url):
         path = urlparse(url).path
         filename = posixpath.basename(path)
 
-        return os.path.join(self.out_path, filename)
+        return os.path.join(base, filename)
 
     def queue_files(self, file_list):
-
         queue = []
         pattern = re.compile(self._instrument['match'])
         self.logger.debug("%d files before pruning", len(file_list))
         for new_file in file_list:
-            out_path = self.path_from_url(new_file['url'])
+            out_file = self.path_from_url(self.out_path, new_file['url'])
+            # tmp_path = self.path_from_url(self.tmp_path, new_file['url'])
 
-            if pattern.search(out_path) and not os.path.exists(out_path):
-                self.logger.debug("Queueing %s", out_path)
-                queue.append((new_file, out_path))
+            if pattern.search(out_file) and not os.path.exists(out_file):
+                self.logger.debug("Queueing %s", new_file['url'])
+                queue.append(new_file)
             else:
-                self.logger.debug("Skipping %s", out_path)
+                self.logger.debug("Skipping %s", new_file['url'])
 
         self.logger.debug("%d files after pruning", len(queue))
         return queue
@@ -232,16 +238,17 @@ class MirrorGina(object):
         while num_processed < num_files:
             # If there is an url to process and a free curl object, add to multi stack
             while file_queue and freelist:
-                new_file, filename = file_queue.pop(0)
+                new_file = file_queue.pop(0)
+                tmp_file = self.path_from_url(self.tmp_path, new_file['url'])
                 url = new_file['url']
                 c = freelist.pop()
-                c.fp = open(filename, "wb")
+                c.fp = open(tmp_file, "wb")
                 c.setopt(pycurl.URL, url.encode('ascii', 'replace'))
                 c.setopt(pycurl.WRITEDATA, c.fp)
                 m.add_handle(c)
                 self.logger.debug("added handle")
                 # store some info
-                c.filename = filename
+                c.tmp_file = tmp_file
                 c.url = url
                 c.md5 = new_file['md5sum']
             while 1:
@@ -251,37 +258,39 @@ class MirrorGina(object):
             while 1:
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
-                    print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
+                    print("Success:", c.tmp_file, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
                     status_code = c.getinfo(pycurl.HTTP_CODE)
                     c.fp.close()
-                    file_md5 = hashlib.md5(open(c.filename, 'rb').read()).hexdigest()
+                    file_md5 = hashlib.md5(open(c.tmp_file, 'rb').read()).hexdigest()
                     self.logger.debug(str(c.md5) + " : " + str(file_md5))
 
                     if c.md5 == file_md5:
                         try:
-                            h5f = h5py.File(c.filename, 'r')
+                            h5f = h5py.File(c.tmp_file, 'r')
                             success = True
                             errmsg = None
+                            out_file = self.path_from_url(self.out_path, c.url)
+                            os.rename(c.tmp_file, c.out_file)
                         except:
                             success = False
                             errmsg = 'Good checksum, bad format.'
-                            os.unlink(c.filename)
+                            os.unlink(c.tmp_file)
                     else:
                         success = False
                         errmsg = 'Bad checksum'
-                        os.unlink(c.filename)
+                        os.unlink(c.tmp_file)
 
                     c.fp = None
                     m.remove_handle(c)
                     freelist.append(c)
-                    self._log_sighting(c.filename, status_code, success, message=errmsg)
+                    self._log_sighting(c.tmp_file, status_code, success, message=errmsg)
 
                 for c, errno, errmsg in err_list:
-                    print("Failed:", c.filename, c.url, errno, errmsg)
+                    print("Failed:", c.tmp_file, c.url, errno, errmsg)
                     status_code = c.getinfo(pycurl.HTTP_CODE)
-                    self._log_sighting(c.filename, status_code, False, message=errmsg)
+                    self._log_sighting(c.tmp_file, status_code, False, message=errmsg)
                     c.fp.close()
-                    os.unlink(c.filename)
+                    os.unlink(c.tmp_file)
                     c.fp = None
                     m.remove_handle(c)
                     freelist.append(c)
