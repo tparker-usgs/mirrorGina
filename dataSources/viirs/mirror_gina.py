@@ -31,6 +31,7 @@ import socket
 import viirs
 from db import Db
 import h5py
+import sys
 
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
@@ -270,7 +271,7 @@ class MirrorGina(object):
                             success = True
                             errmsg = None
                             out_file = self.path_from_url(self.out_path, c.url)
-                            os.rename(c.tmp_file, c.out_file)
+                            os.rename(c.tmp_file, out_file)
                         except:
                             success = False
                             errmsg = 'Good checksum, bad format.'
