@@ -47,7 +47,7 @@ FACILITIES = ('uafgina', 'gilmore')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
 OUT_DIR = os.path.join(os.environ['BASE_DIR'], 'data')
-TMP_DIR = os.path.join(os.environ['BASE_DIR'], 'temp')
+TMP_DIR = os.path.join(os.environ['BASE_DIR'], 'data/temp')
 DB_DIR = os.path.join(os.environ['BASE_DIR'], 'db')
 
 
