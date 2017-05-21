@@ -179,7 +179,7 @@ class MirrorGina(object):
         trans_time = sight_date - granule.proc_date
 
         if not success:
-            msg = '### :x: Failed file: %s %d %s\n' % (granule.channel, granule.orbit, granule.start)
+            msg = '### :x: Failed file:'
             msg += '\n**Filename** %s' % filename
             msg += '\n**Status code** %d' % status_code
             if message is not None:
