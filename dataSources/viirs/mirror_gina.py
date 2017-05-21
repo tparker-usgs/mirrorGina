@@ -172,7 +172,7 @@ class MirrorGina(object):
 
         return m
 
-    def _log_sighting(self, filename, status_code, success, message=None):
+    def _log_sighting(self, filename, status_code, success, message=None, url=None):
         sight_date = datetime.utcnow()
         granule = viirs.Viirs(filename)
         proc_time = granule.proc_date - granule.start
@@ -180,7 +180,10 @@ class MirrorGina(object):
 
         if not success:
             msg = '### :x: Failed file:'
-            msg += '\n**Filename** %s' % filename
+            if url is not None:
+                msg += '\n**URL** %s' % url
+            else:
+                msg += '\n**Filename** %s' % filename
             msg += '\n**Status code** %d' % status_code
             if message is not None:
                 msg += '**Message** %s\n' % message
@@ -294,7 +297,7 @@ class MirrorGina(object):
                 for c, errno, errmsg in err_list:
                     print("Failed:", c.tmp_file, c.url, errno, errmsg)
                     status_code = c.getinfo(pycurl.HTTP_CODE)
-                    self._log_sighting(c.tmp_file, status_code, False, message=errmsg)
+                    self._log_sighting(c.tmp_file, status_code, False, message=errmsg, url=c.url)
                     c.fp.close()
                     os.unlink(c.tmp_file)
                     c.fp = None
