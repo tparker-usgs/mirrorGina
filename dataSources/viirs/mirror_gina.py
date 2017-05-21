@@ -47,7 +47,7 @@ FACILITIES = ('uafgina', 'gilmore')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
 OUT_DIR = os.path.join(os.environ['BASE_DIR'], 'data')
-TMP_DIR = os.path.join(os.environ['BASE_DIR'], 'tmp')
+TMP_DIR = os.path.join(os.environ['BASE_DIR'], 'temp')
 DB_DIR = os.path.join(os.environ['BASE_DIR'], 'db')
 
 
@@ -270,12 +270,14 @@ class MirrorGina(object):
                             h5f = h5py.File(c.tmp_file, 'r')
                             success = True
                             errmsg = None
-                            out_file = self.path_from_url(self.out_path, c.url)
-                            os.rename(c.tmp_file, out_file)
                         except:
                             success = False
                             errmsg = 'Good checksum, bad format.'
                             os.unlink(c.tmp_file)
+                        else:
+                            out_file = self.path_from_url(self.out_path, c.url)
+                            os.rename(c.tmp_file, out_file)
+
                     else:
                         success = False
                         errmsg = 'Bad checksum'
