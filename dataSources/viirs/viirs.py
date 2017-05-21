@@ -47,7 +47,7 @@ class Viirs(object):
 
 def filename_comparator(name1, name2):
     """
-    Sort VIIRS filenames. Decreasing by orbit, then increasing by time. 
+    Sort VIIRS filenames. Decreasing by orbit, then increasing by time, then alphabetical (geo before data).  
     
     :param name1: 
     :param name2: 
@@ -63,6 +63,10 @@ def filename_comparator(name1, name2):
     elif v1.start > v2.start:
         return 1
     elif v1.start < v2.start:
+        return -1
+    elif v1.channel > v2.channel:
+        return 1
+    elif v1.channel < v2.channel:
         return -1
     else:
         return 0
