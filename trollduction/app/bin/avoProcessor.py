@@ -80,11 +80,11 @@ class AvoProcessor(object):
         platform_name = data["platform_name"]
         start = parser.parse(data["start_date"])
         end = start + GRANULE_SPAN
-        start -= ORBIT_SLACK
-        print ("start %s :: %s" % (start, type(start)))
+        start_slack = start - ORBIT_SLACK
+        print ("start %s :: %s" % (start_slack, type(start_slack)))
         print ("end %s :: %s" % (end, type(end)))
-        overpass = Pass(platform_name, start, end, instrument='viirs')
-        previous_overpass = Pass(platform_name, start - GRANULE_SPAN, end - GRANULE_SPAN, instrument='viirs')
+        overpass = Pass(platform_name, start_slack, end, instrument='viirs')
+        previous_overpass = Pass(platform_name, start_slack - GRANULE_SPAN, end - GRANULE_SPAN, instrument='viirs')
 
         images = []
         for sector in SECTORS:
@@ -96,8 +96,8 @@ class AvoProcessor(object):
             if coverage < .1 or not coverage > previous_coverage:
                 continue
 
-            global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start, data["orbit_number"])
-            global_data.load(global_data.image.avoir.prerequisites, time_interval=(start, end))
+            global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
+            global_data.load(global_data.image.avoir.prerequisites, time_interval=(start_slack, end))
             local_data = global_data.project(sector)
 
             img = local_data.image.avoir().pil_image()
@@ -109,9 +109,10 @@ class AvoProcessor(object):
             colormap.greys.set_range(30, -65)
             dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
             dc.new_line()
-            dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start, font=font, height=30, extend=True, bg_opacity=255, bg='black')
+            start_string = start.strftime('%m/%d/%Y %H:%M')
+            dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
 
-            filename = "%s-ir-%s.png" % (sector, parser.parse(data["start_date"]).strftime('%Y%m%d-%H%M'))
+            filename = "%s-ir-%s.png" % (sector, start.strftime('%Y%m%d-%H%M'))
             filepath = os.path.join(PNG_DIR, filename)
             print("Saving to %s" % filepath)
             img.save(filepath)
@@ -121,7 +122,7 @@ class AvoProcessor(object):
 
         proc_end = datetime.now()
         if len(images) < 1:
-            msg = "### :hourglass: Granule covers no sectors. (%s)" %  start
+            msg = "### :hourglass: Granule covers no sectors."
         else:
             msg = "### :camera: New image"
             msg += "\n\n| Sector | Coverage (%) |"
@@ -133,6 +134,7 @@ class AvoProcessor(object):
         msg += '\n**Accumulated delay** %s' % (mm.format_timedelta(proc_end - start))
         self.mattermost.post(msg)
 
+
 def main():
     processor = AvoProcessor()
     with Subscribe('', "pytroll://ir108-EARS/Suomi-NPP/viirs/1b", True) as sub:
@@ -140,8 +142,12 @@ def main():
             try:
                 processor.process_message(msg)
             except:  # catch *all* exceptions
+                errmsg = "### Unexpected error "
                 e = sys.exc_info()
-                processor.mattermost.post("**Unexpected error** " + str(e))
+                if len(e) == 3:
+                    errmsg += '\n %s' % e[1]
+                    errmsg += '\n %s' % e[2].format_exc()
+                processor.mattermost.post(errmsg)
 
 
 if __name__ == '__main__':
