@@ -217,6 +217,7 @@ class MirrorGina(object):
                 granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
                 msg += '**Processing delay** %s\n' % mm.format_timedelta(proc_time)
                 msg += '**Transfer delay** %s\n' % mm.format_timedelta(trans_time)
+                msg += '**Accumulated delay** %s\n' % mm.format_timedelta(proc_time + trans_time)
 
                 if message:
                     msg += "\n**Message: %s" % message
