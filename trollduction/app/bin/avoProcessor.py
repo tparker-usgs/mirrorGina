@@ -106,11 +106,11 @@ class AvoProcessor(object):
             dc = DecoratorAGG(img)
             dc.align_bottom()
 
-            font=aggdraw.Font(0xff0000ff,"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
+            font=aggdraw.Font((218,165,32),"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
             colormap.greys.set_range(30, -65)
             dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
             dc.new_line()
-            start_string = start.strftime('%m/%d/%Y %H:%M')
+            start_string = start.strftime('%m/%d/%Y %H:%M UCT')
             dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
 
             filename = "%s-ir-%s.png" % (sector, start.strftime('%Y%m%d-%H%M'))
