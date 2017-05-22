@@ -19,16 +19,16 @@ WORKDIR /usr/share/ca-certificates/extra
 ADD DOIRootCA2.cer DOIRootCA2.crt
 RUN echo "extra/DOIRootCA2.crt" >> /etc/ca-certificates.conf && update-ca-certificates
 
-WORKDIR /app/dataSources
+WORKDIR /app/collectors
 ADD requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt # 1
 
 ADD bin bin
 ADD viirs viirs
 ADD lib lib
-ADD cron-dataSources /tmp/cron-dataSources
+ADD cron-collectors /tmp/cron-collectors
 ADD run_crond.sh  .
 RUN chmod 755 run_crond.sh
 
 #CMD ["cron","-f"]
-CMD ["/app/dataSources/run_crond.sh"]
+CMD ["/app/collectors/run_crond.sh"]
