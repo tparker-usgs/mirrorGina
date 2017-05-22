@@ -268,6 +268,7 @@ class MirrorGina(object):
                     if c.md5 == file_md5:
                         try:
                             h5py.File(c.tmp_file, 'r')
+                            print("TOMP SAYS 1")
                             success = True
                             errmsg = None
                         except:
