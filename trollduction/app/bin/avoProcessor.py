@@ -22,6 +22,7 @@ import os.path
 import mattermost as mm
 from trollimage import colormap
 import sys
+import traceback
 
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
@@ -146,7 +147,7 @@ def main():
                 e = sys.exc_info()
                 if len(e) == 3:
                     errmsg += '\n %s' % e[1]
-                    errmsg += '\n %s' % e[2].format_exc()
+                    errmsg += '\n %s' %  traceback.format_exc()
                 processor.mattermost.post(errmsg)
 
 
