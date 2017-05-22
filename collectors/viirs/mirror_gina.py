@@ -166,6 +166,7 @@ class MirrorGina(object):
         return m
 
     def _log_sighting(self, filename, status_code, success, message=None, url=None):
+        self.logger.debug("TOMP HERE")
         sight_date = datetime.utcnow()
         granule = viirs.Viirs(filename)
         proc_time = granule.proc_date - granule.start
@@ -221,6 +222,7 @@ class MirrorGina(object):
 
         if msg is not None:
             self.mattermost.post(msg)
+
         self.conn.insert_obs(self.args.facility, granule, sight_date, status_code, success)
 
     def fetch_files(self):
