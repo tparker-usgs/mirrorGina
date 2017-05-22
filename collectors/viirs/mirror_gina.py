@@ -268,7 +268,6 @@ class MirrorGina(object):
                     if c.md5 == file_md5:
                         try:
                             h5py.File(c.tmp_file, 'r')
-                            print("TOMP SAYS 1")
                             success = True
                             errmsg = None
                         except:
@@ -281,7 +280,8 @@ class MirrorGina(object):
 
                     else:
                         success = False
-                        errmsg = 'Bad checksum'
+                        len = os.path.getsize(c.tmp_file)
+                        errmsg = 'Bad checksum: %s != %s (%d bytes)' % (file_md5, c.md5, len)
                         os.unlink(c.tmp_file)
 
                     c.fp = None
