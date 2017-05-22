@@ -186,8 +186,8 @@ class MirrorGina(object):
                 msg += '\n**Filename** %s' % filename
             msg += '\n**Status code** %d' % status_code
             if message is not None:
-                msg += '**Message** %s\n' % message
-            msg += '**Processing delay** %s' % mm.format_timedelta(proc_time)
+                msg += '\n**Message** %s' % message
+            msg += '\n**Processing delay** %s' % mm.format_timedelta(proc_time)
         else:
 
             pause = timedelta(hours=1)
