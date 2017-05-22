@@ -171,8 +171,9 @@ class MirrorGina(object):
         proc_time = granule.proc_date - granule.start
         trans_time = sight_date - granule.proc_date
 
+        msg = None
         if not success:
-            msg = '### :x: Failed file'
+            msg = '### :x: Failed file transfer'
             if url is not None:
                 msg += '\n**URL** %s' % url
             else:
@@ -182,21 +183,19 @@ class MirrorGina(object):
                 msg += '\n**Message** %s' % message
             msg += '\n**Processing delay** %s' % mm.format_timedelta(proc_time)
         else:
-
             pause = timedelta(hours=1)
 
             # post new orbit messasge
             orbit_proc_time = self.conn.get_orbit_proctime(self.args.facility, granule)
             granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
 
+            orb_msg = None
             if orbit_proc_time is None:
                 orb_msg = '### :earth_americas: New orbit from %s: %d' % (self.args.facility, granule.orbit)
-            elif orbit_proc_time + pause < granule.proc_date:
+            elif granule.proc_date > orbit_proc_time + pause:
                 orb_msg = '### :snail: _Reprocessed orbit_ from %s: %d' % (self.args.facility, granule.orbit)
-            else:
-                orb_msg = None
 
-            if orb_msg:
+            if orb_msg is not None:
                 orb_msg += '\n**First granule** %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
                 count = self.conn.get_orbit_granule_count(granule.orbit - 1, self.args.facility)
                 orb_msg += '\n**Granules seen from orbit %d** %d' % (granule.orbit - 1, count)
@@ -204,27 +203,25 @@ class MirrorGina(object):
 
             # post new granule message
             if granule_proc_time is None:
-                msg = '### :satellite: New granule from %s\n' % self.args.facility
-            elif granule_proc_time + pause < granule.proc_date:
-                msg = '### :snail: _Reprocessed granule_ from %s\n' % self.args.facility
-            else:
-                msg = None
+                msg = '### :satellite: New granule from %s' % self.args.facility
+            elif granule.proc_date > granule_proc_time + pause:
+                msg = '### :snail: _Reprocessed granule_ from %s' % self.args.facility
 
-            if msg:
+            if msg is not None:
                 granle_span = mm.format_span(granule.start, granule.end)
                 granule_delta = mm.format_timedelta(granule.end - granule.start)
-                msg += '**Granule span** %s (%s)\n' % (granle_span, granule_delta)
+                msg += '\n**Granule span** %s (%s)' % (granle_span, granule_delta)
                 granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
-                msg += '**Processing delay** %s\n' % mm.format_timedelta(proc_time)
-                msg += '**Transfer delay** %s\n' % mm.format_timedelta(trans_time)
-                msg += '**Accumulated delay** %s\n' % mm.format_timedelta(proc_time + trans_time)
+                msg += '\n**Processing delay** %s' % mm.format_timedelta(proc_time)
+                msg += '\n**Transfer delay** %s' % mm.format_timedelta(trans_time)
+                msg += '\n**Accumulated delay** %s' % mm.format_timedelta(proc_time + trans_time)
 
                 if message:
-                    msg += "\n**Message: %s" % message
+                    msg += '\n**Message: %s' % message
 
-        if 'msg' in locals() and msg is not None:
+        if msg is not None:
             self.mattermost.post(msg)
-            self.conn.insert_obs(self.args.facility, granule, sight_date, status_code, success)
+        self.conn.insert_obs(self.args.facility, granule, sight_date, status_code, success)
 
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
