@@ -52,16 +52,9 @@ class Db(object):
             return parser.parse(r[0])
 
     def get_orbit_granule_count(self, orbit, facility):
-        """
-
-        :param orbit: 
-        :return: 
-        """
-        q = self.conn.execute('''SELECT count(*) 
-                                 FROM (SELECT DISTINCT granule_date 
-                                       FROM sighting WHERE orbit = ? 
-                                       AND source = ?)''',
-                              (orbit, facility))
+        q = self.conn.execute('''SELECT count(*) FROM 
+                                (SELECT DISTINCT granule_date FROM sighting 
+                                WHERE orbit = ? AND source = ?)''', (orbit, facility))
         r = q.fetchone()
         if r is None:
             return None
@@ -114,7 +107,7 @@ def get_db_conn(db_dir):
     """
     Connect to a sqlite3 database file. Create the database if needed. 
     Not using foreign key constraints to maximize compatibility.
-    :param db_file: The database file to connect to 
+    :param db_dir: The database file to connect to 
     :return: The connection object
     """
 

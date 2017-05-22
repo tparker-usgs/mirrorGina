@@ -31,7 +31,6 @@ import socket
 import viirs
 from db import Db
 import h5py
-import sys
 
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
@@ -133,18 +132,12 @@ class MirrorGina(object):
         files = sorted(files, key=lambda k: k['url'], cmp=viirs.filename_comparator)
         return files
 
-    def path_from_url(self, base, url):
-        path = urlparse(url).path
-        filename = posixpath.basename(path)
-
-        return os.path.join(base, filename)
-
     def queue_files(self, file_list):
         queue = []
         pattern = re.compile(self._instrument['match'])
         self.logger.debug("%d files before pruning", len(file_list))
         for new_file in file_list:
-            out_file = self.path_from_url(self.out_path, new_file['url'])
+            out_file = path_from_url(self.out_path, new_file['url'])
             # tmp_path = self.path_from_url(self.tmp_path, new_file['url'])
 
             if pattern.search(out_file) and not os.path.exists(out_file):
@@ -218,7 +211,9 @@ class MirrorGina(object):
                 msg = None
 
             if msg:
-                msg += '**Granule span** %s (%s)\n' % (mm.format_span(granule.start, granule.end), mm.format_timedelta(granule.end - granule.start))
+                granle_span = mm.format_span(granule.start, granule.end)
+                granule_delta = mm.format_timedelta(granule.end - granule.start)
+                msg += '**Granule span** %s (%s)\n' % (granle_span, granule_delta)
                 granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
                 msg += '**Processing delay** %s\n' % mm.format_timedelta(proc_time)
                 msg += '**Transfer delay** %s\n' % mm.format_timedelta(trans_time)
@@ -246,7 +241,7 @@ class MirrorGina(object):
             # If there is an url to process and a free curl object, add to multi stack
             while file_queue and freelist:
                 new_file = file_queue.pop(0)
-                tmp_file = self.path_from_url(self.tmp_path, new_file['url'])
+                tmp_file = path_from_url(self.tmp_path, new_file['url'])
                 url = new_file['url']
                 c = freelist.pop()
                 c.fp = open(tmp_file, "wb")
@@ -273,7 +268,7 @@ class MirrorGina(object):
 
                     if c.md5 == file_md5:
                         try:
-                            h5f = h5py.File(c.tmp_file, 'r')
+                            h5py.File(c.tmp_file, 'r')
                             success = True
                             errmsg = None
                         except:
@@ -281,7 +276,7 @@ class MirrorGina(object):
                             errmsg = 'Good checksum, bad format.'
                             os.unlink(c.tmp_file)
                         else:
-                            out_file = self.path_from_url(self.out_path, c.url)
+                            out_file = path_from_url(self.out_path, c.url)
                             os.rename(c.tmp_file, out_file)
 
                     else:
@@ -307,8 +302,6 @@ class MirrorGina(object):
                 if num_q == 0:
                     break
 
-
-
             m.select(1.0)
 
         # Cleanup
@@ -320,6 +313,13 @@ class MirrorGina(object):
             c.close()
         m.close()
         self.conn.close()
+
+
+def path_from_url(base, url):
+    path = urlparse(url).path
+    filename = posixpath.basename(path)
+
+    return os.path.join(base, filename)
 
 
 def arg_parse():
