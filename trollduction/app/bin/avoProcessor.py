@@ -113,11 +113,13 @@ class AvoProcessor(object):
             start_string = start.strftime('%m/%d/%Y %H:%M UCT')
             dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
 
-            filename = "%s-ir-%s.png" % (sector, start.strftime('%Y%m%d-%H%M'))
-            filepath = os.path.join(PNG_DIR, sector, filename)
+            filepath = os.path.join(PNG_DIR, sector)
             if not os.path.exists(filepath):
                 print("Making out dir " + filepath)
                 os.makedirs(filepath)
+
+            filename = "%s-ir-%s.png" % (sector, start.strftime('%Y%m%d-%H%M'))
+            filepath = os.path.join(filepath, filename)
 
             print("Saving to %s" % filepath)
             img.save(filepath)
