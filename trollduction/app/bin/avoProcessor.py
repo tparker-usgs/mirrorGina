@@ -117,7 +117,7 @@ class AvoProcessor(object):
             filepath = os.path.join(PNG_DIR, sector, filename)
             if not os.path.exists(filepath):
                 print("Making out dir " + filepath)
-                os.makedirs(self.filepath)
+                os.makedirs(filepath)
 
             print("Saving to %s" % filepath)
             img.save(filepath)
