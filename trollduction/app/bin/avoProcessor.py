@@ -27,29 +27,30 @@ import traceback
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 PNG_DIR = '/data/viirs/png'
-SECTORS = ('AKSC',
-           'AKAP',
-           'AKEA',
-           'AKWA',
-           'RUKA',
-           'AKAL',
-           'AKGA',
-           'AKIN',
-           'AKSE',
-           'AKNP',
-           'AKCL',
-           'AKPV',
-           'AKVN',
-           'AKSH',
-           'AKBO',
-           'AKCE',
-           'AKCH',
-           'BERS',
-           'AKNS',
-           'CNMI',
-           'RUKA2km',
-           'RUKI',
-           'RUNP')
+SECTORS = (('AKSC', '1km'),
+           ('AKAP', '1km',
+           ('AKEA', '1km',
+           ('AKWA', '1km',
+           ('RUKA', '1km',
+           ('AKAL', '2km',
+           ('AKGA', '2km',
+           ('AKIN', '2km',
+           ('AKSE', '2km',
+           ('AKNP', '5km',
+           ('AKCL', '250m',
+           ('AKPV', '250m',
+           ('AKVN', '250m',
+           ('AKSH', '250m',
+           ('AKBO', '250m',
+           ('AKCE', '250m',
+           ('AKCH', '250m',
+           ('BERS', '2km',
+           ('AKNS', '2km',
+           ('CNMI', '1km',
+           ('RUKA', '2km',
+           ('RUKI', '2km',
+           ('RUNP', '5km')
+          )
 
 class AvoProcessor(object):
     def __init__(self):
@@ -88,18 +89,19 @@ class AvoProcessor(object):
         previous_overpass = Pass(platform_name, start_slack - GRANULE_SPAN, end - GRANULE_SPAN, instrument='viirs')
 
         images = []
-        for sector in SECTORS:
-            sector_def = get_area_def(sector)
+        for (sector, size) in SECTORS:
+            size_sector = size+sector
+            sector_def = get_area_def(size_sector)
             coverage = overpass.area_coverage(sector_def)
             previous_coverage = previous_overpass.area_coverage(sector_def)
-            print "%s coverage: %f" % (sector, coverage)
+            print "%s coverage: %f" % (size_sector, coverage)
 
             if coverage < .1 or not coverage > previous_coverage:
                 continue
 
             global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
             global_data.load(global_data.image.avoir.prerequisites, time_interval=(start_slack, end))
-            local_data = global_data.project(sector)
+            local_data = global_data.project(size_sector)
 
             img = local_data.image.avoir().pil_image()
 
@@ -118,14 +120,14 @@ class AvoProcessor(object):
                 print("Making out dir " + filepath)
                 os.makedirs(filepath)
 
-            filename = "%s-ir-%s.png" % (sector, start.strftime('%Y%m%d-%H%M'))
+            filename = "%s-ir-%s.png" % (size_sector, start.strftime('%Y%m%d-%H%M'))
             filepath = os.path.join(filepath, filename)
 
             print("Saving to %s" % filepath)
             img.save(filepath)
             if images is None:
                 images
-            images.append((sector, coverage * 100))
+            images.append((size_sector, coverage * 100))
 
         proc_end = datetime.now()
         if len(images) < 1:
