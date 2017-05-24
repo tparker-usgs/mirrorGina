@@ -280,8 +280,8 @@ class MirrorGina(object):
 
                     else:
                         success = False
-                        len = os.path.getsize(c.tmp_file)
-                        errmsg = 'Bad checksum: %s != %s (%d bytes)' % (file_md5, c.md5, len)
+                        size = os.path.getsize(c.tmp_file)
+                        errmsg = 'Bad checksum: %s != %s (%d bytes)' % (file_md5, c.md5, size)
                         os.unlink(c.tmp_file)
 
                     c.fp = None
