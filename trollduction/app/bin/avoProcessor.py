@@ -19,7 +19,7 @@ from trollsched.satpass import Pass
 from mpop.projector import get_area_def
 import os
 import os.path
-import mattermost as mm
+import tomputils.mattermost as mm
 from trollimage import colormap
 import sys
 import traceback

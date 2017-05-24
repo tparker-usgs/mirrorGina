@@ -2,3 +2,5 @@ pycurl
 requests
 python-dateutil
 h5py
+tomputils
+future

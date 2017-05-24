@@ -25,7 +25,7 @@ from datetime import timedelta, datetime
 from urlparse import urlparse
 import cStringIO
 import pycurl
-import mattermost as mm
+import tomputils.mattermost as mm
 import hashlib
 import socket
 import viirs

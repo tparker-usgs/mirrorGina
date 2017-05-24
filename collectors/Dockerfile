@@ -25,7 +25,6 @@ RUN pip install --no-cache-dir -r requirements.txt # 1
 
 ADD bin bin
 ADD viirs viirs
-ADD lib lib
 ADD cron-collectors /tmp/cron-collectors
 ADD run_crond.sh  .
 RUN chmod 755 run_crond.sh
