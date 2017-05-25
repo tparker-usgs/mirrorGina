@@ -109,7 +109,7 @@ class AvoProcessor(object):
             dc.align_bottom()
 
             font=aggdraw.Font((218,165,32),"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
-            colormap.greys.set_range(30, -65)
+            colormap.greys.set_range(35, -65)
             dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
             dc.new_line()
             start_string = start.strftime('%m/%d/%Y %H:%M UCT')

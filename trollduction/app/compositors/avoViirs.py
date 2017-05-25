@@ -21,15 +21,14 @@ def avoir(self):
                                 mode="RGB",
                                 crange=(range, range, range))
 
-    # trim data to -65 - 30 c
-    img.stretch_linear(0, cutoffs=(5/255, 27.5/255))
-    img.stretch_linear(1, cutoffs=(5/255, 27.5/255))
-    img.stretch_linear(2, cutoffs=(5/255, 27.5/255))
+    # trim data to -65 - 35 c
+    img.stretch_linear(0, cutoffs=(5/255, 22.5/255))
+    img.stretch_linear(1, cutoffs=(5/255, 22.5/255))
+    img.stretch_linear(2, cutoffs=(5/255, 22.5/255))
 
     # clouds should be white
     img.enhance(inverse=True)
 
-    # couldn't get this working in the l2processor config
     img.add_overlay(color=(218,165,32))
 
     return img
