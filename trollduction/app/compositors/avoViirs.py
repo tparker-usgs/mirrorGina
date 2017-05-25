@@ -22,9 +22,9 @@ def avoir(self):
                                 crange=(range, range, range))
 
     # trim data to -65 - 30 c
-    img.stretch_linear(0, cutoffs=(5/255, 22.5/255))
-    img.stretch_linear(1, cutoffs=(5/255, 22.5/255))
-    img.stretch_linear(2, cutoffs=(5/255, 22.5/255))
+    img.stretch_linear(0, cutoffs=(5/255, 27.5/255))
+    img.stretch_linear(1, cutoffs=(5/255, 27.5/255))
+    img.stretch_linear(2, cutoffs=(5/255, 27.5/255))
 
     # clouds should be white
     img.enhance(inverse=True)
