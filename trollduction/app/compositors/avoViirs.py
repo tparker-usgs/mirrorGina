@@ -13,7 +13,7 @@ def avoir(self):
     """
     self.check_channels("M15")
     data = self["M15"].data
-    range = (-70 + 273.15, 57.5 + 273.15)
+    range = (-65 + 273.15, 35 + 273.15)
     img = geo_image.GeoImage((data, data, data),
                                 self.area,
                                 self.time_slot,
@@ -22,9 +22,9 @@ def avoir(self):
                                 crange=(range, range, range))
 
     # trim data to -65 - 35 c
-    img.stretch_linear(0, cutoffs=(5/255, 22.5/255))
-    img.stretch_linear(1, cutoffs=(5/255, 22.5/255))
-    img.stretch_linear(2, cutoffs=(5/255, 22.5/255))
+    #img.stretch_linear(0, cutoffs=(5/255, 22.5/255))
+    #img.stretch_linear(1, cutoffs=(5/255, 22.5/255))
+    #img.stretch_linear(2, cutoffs=(5/255, 22.5/255))
 
     # clouds should be white
     img.enhance(inverse=True)
