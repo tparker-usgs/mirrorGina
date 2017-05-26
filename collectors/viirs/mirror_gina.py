@@ -116,7 +116,7 @@ class MirrorGina(object):
         url += '&end_date=' + end_date.strftime('%Y-%m-%d')
         url += '&sensors[]=' + self._instrument['name']
         url += '&processing_levels[]=' + self._instrument['level']
-
+        url += '&facilities[]=' + self.args.facility
         self.logger.debug("URL: %s", url)
         buf = cStringIO.StringIO()
 
