@@ -2,4 +2,4 @@ pycurl
 requests
 python-dateutil
 h5py
-tomputils
+tomputils>=1.0.6

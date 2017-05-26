@@ -10,4 +10,4 @@ netifaces
 python-dateutil
 pytz
 requests
-tomputils
+tomputils>=1.0.6
