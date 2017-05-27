@@ -31,6 +31,9 @@ import socket
 import viirs
 from db import Db
 import h5py
+from pyflit import flit
+
+from urllib2 import HTTPRedirectHandler
 
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
@@ -165,7 +168,7 @@ class MirrorGina(object):
 
         return m
 
-    def _log_sighting(self, filename, status_code, success, message=None, url=None):
+    def _log_sighting(self, filename, success, message=None, url=None):
         self.logger.debug("TOMP HERE")
         sight_date = datetime.utcnow()
         granule = viirs.Viirs(filename)
@@ -177,9 +180,8 @@ class MirrorGina(object):
             msg = '### :x: Failed file transfer'
             if url is not None:
                 msg += '\n**URL** %s' % url
-            else:
-                msg += '\n**Filename** %s' % filename
-            msg += '\n**Status code** %d' % status_code
+
+            msg += '\n**Filename** %s' % filename
             if message is not None:
                 msg += '\n**Message** %s' % message
             msg += '\n**Processing delay** %s' % mm.format_timedelta(proc_time)
@@ -223,96 +225,43 @@ class MirrorGina(object):
         if msg is not None:
             self.mattermost.post(msg)
 
-        self.conn.insert_obs(self.args.facility, granule, sight_date, status_code, success)
+        self.conn.insert_obs(self.args.facility, granule, sight_date, success)
 
     def fetch_files(self):
         # modeled after retiever-multi.py from pycurl
         file_list = self.get_file_list()
         file_queue = self.queue_files(file_list)
 
-        m = self.create_multi()
+        while file_queue:
+            new_file = file_queue.pop(0)
+            url = new_file['url']
+            tmp_file = path_from_url(self.tmp_path, url)
+            segment_number = 2
+            opener = flit.get_opener()
+            flit.flit_segments(url, segment_number, opener, outfile=tmp_file)
+            md5 = new_file['md5sum']
+            file_md5 = hashlib.md5(open(tmp_file, 'rb').read()).hexdigest()
+            self.logger.debug(str(md5) + " : " + str(file_md5))
 
-        freelist = m.handles[:]
-        num_processed = 0
-        num_files = len(file_queue)
-        self.logger.debug("Fetching %d files with %d connections.", num_files, len(freelist))
-        while num_processed < num_files:
-            # If there is an url to process and a free curl object, add to multi stack
-            while file_queue and freelist:
-                new_file = file_queue.pop(0)
-                tmp_file = path_from_url(self.tmp_path, new_file['url'])
-                url = new_file['url']
-                c = freelist.pop()
-                c.fp = open(tmp_file, "wb")
-                c.setopt(pycurl.URL, url.encode('ascii', 'replace'))
-                c.setopt(pycurl.WRITEDATA, c.fp)
-                m.add_handle(c)
-                self.logger.debug("added handle")
-                # store some info
-                c.tmp_file = tmp_file
-                c.url = url
-                c.md5 = new_file['md5sum']
-            while 1:
-                ret, num_handles = m.perform()
-                if ret != pycurl.E_CALL_MULTI_PERFORM:
-                    break
-            while 1:
-                num_q, ok_list, err_list = m.info_read()
-                for c in ok_list:
-                    print("Success:", c.tmp_file, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
-                    status_code = c.getinfo(pycurl.HTTP_CODE)
-                    c.fp.close()
-                    file_md5 = hashlib.md5(open(c.tmp_file, 'rb').read()).hexdigest()
-                    self.logger.debug(str(c.md5) + " : " + str(file_md5))
+            if md5 == file_md5:
+                try:
+                    h5py.File(tmp_file, 'r')
+                    success = True
+                    errmsg = None
+                except:
+                    success = False
+                    errmsg = 'Good checksum, bad format.'
+                    os.unlink(tmp_file)
+                else:
+                    out_file = path_from_url(self.out_path, url)
+                    os.rename(tmp_file, out_file)
+            else:
+                success = False
+                size = os.path.getsize(tmp_file)
+                errmsg = 'Bad checksum: %s != %s (%d bytes)' % (file_md5, md5, size)
+                os.unlink(tmp_file)
 
-                    if c.md5 == file_md5:
-                        try:
-                            h5py.File(c.tmp_file, 'r')
-                            success = True
-                            errmsg = None
-                        except:
-                            success = False
-                            errmsg = 'Good checksum, bad format.'
-                            os.unlink(c.tmp_file)
-                        else:
-                            out_file = path_from_url(self.out_path, c.url)
-                            os.rename(c.tmp_file, out_file)
-
-                    else:
-                        success = False
-                        size = os.path.getsize(c.tmp_file)
-                        errmsg = 'Bad checksum: %s != %s (%d bytes)' % (file_md5, c.md5, size)
-                        os.unlink(c.tmp_file)
-
-                    c.fp = None
-                    m.remove_handle(c)
-                    freelist.append(c)
-                    self._log_sighting(c.tmp_file, status_code, success, message=errmsg)
-
-                for c, errno, errmsg in err_list:
-                    print("Failed:", c.tmp_file, c.url, errno, errmsg)
-                    status_code = c.getinfo(pycurl.HTTP_CODE)
-                    self._log_sighting(c.tmp_file, status_code, False, message=errmsg, url=c.url)
-                    c.fp.close()
-                    os.unlink(c.tmp_file)
-                    c.fp = None
-                    m.remove_handle(c)
-                    freelist.append(c)
-                num_processed += len(ok_list) + len(err_list)
-                if num_q == 0:
-                    break
-
-            m.select(1.0)
-
-        # Cleanup
-        self.logger.debug("cleaning up")
-        for c in m.handles:
-            if c.fp is not None:
-                c.fp.close()
-                c.fp = None
-            c.close()
-        m.close()
-        self.conn.close()
+            self._log_sighting(tmp_file, success, message=errmsg)
 
 
 def path_from_url(base, url):
