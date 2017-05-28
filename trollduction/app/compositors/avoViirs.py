@@ -40,7 +40,7 @@ def avoash(self):
                              self.time_slot,
                              fill_value=0,
                              mode="L",
-                             crange=(-70 + 273.15, 57.5 + 273.15))
+                             crange=(-6, 5))
     img.colorize(rdgy)
     return img
 
