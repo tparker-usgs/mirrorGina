@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # cron is fussy about this
-chmod 644 cron-mirrorGina
+chmod 644 cron-collectors
 
 #systemctl stop mirrorGina.service && \
 
