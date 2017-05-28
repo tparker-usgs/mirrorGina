@@ -2,7 +2,8 @@ import mpop.imageo.geo_image as geo_image
 #from PIL import Image
 from pydecorate import DecoratorAGG
 import aggdraw
-from trollimage.colormap import rdbu
+from trollimage.colormap import rdgy
+from trollimage.colormap import Colormap
 from trollsched.satpass import Pass
 from pprint import pprint
 from mpop.projector import get_area_def
@@ -20,12 +21,6 @@ def avoir(self):
                                 fill_value=None,
                                 mode="RGB",
                                 crange=(range, range, range))
-
-    # trim data to -65 - 35 c
-    #img.stretch_linear(0, cutoffs=(5/255, 22.5/255))
-    #img.stretch_linear(1, cutoffs=(5/255, 22.5/255))
-    #img.stretch_linear(2, cutoffs=(5/255, 22.5/255))
-
     # clouds should be white
     img.enhance(inverse=True)
 
@@ -35,4 +30,21 @@ def avoir(self):
 
 avoir.prerequisites = set(["M15"])
 
-viirs = [avoir]
+
+def avoash(self):
+    """Make BTD composite.
+    """
+    self.check_channels('M15', 'M16')
+    img = geo_image.GeoImage(self["M15"].data - self["M16"].data,
+                             self.area,
+                             self.time_slot,
+                             fill_value=0,
+                             mode="L",
+                             crange=(-6, 5))
+    img.colorize(rdgy)
+    return img
+
+avoash.prerequisites = set(["M15", "M16"])
+
+
+viirs = [avoir, avoash]

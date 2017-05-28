@@ -3,7 +3,7 @@ import os
 # from datetime import datetime
 from dateutil import parser
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 class Db(object):
@@ -61,13 +61,12 @@ class Db(object):
         else:
             return r[0]
 
-    def insert_obs(self, facility, granule, sight_date, status_code, success):
+    def insert_obs(self, facility, granule, sight_date, success):
         """
         
         :param facility: 
         :param granule: 
         :param sight_date: 
-        :param status_code: 
         :param success: 
         :return: 
         """
@@ -80,14 +79,14 @@ class Db(object):
         if r is None:
             sql = '''INSERT INTO sighting 
                      (source, granule_date, granule_channel, orbit, sight_date, 
-                      proc_date, status_code, count, success) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)'''
+                      proc_date, count, success) 
+                      VALUES (?, ?, ?, ?, ?, ?, 1, ?)'''
             self.conn.execute(sql, (facility, granule.start, granule.channel, granule.orbit,
-                                    sight_date, granule.proc_date, status_code, success))
+                                    sight_date, granule.proc_date, success))
         else:
-            sql = '''UPDATE sighting set count = ?, status_code = ?, success = ? 
+            sql = '''UPDATE sighting set count = ?, success = ? 
                      WHERE source = ? AND granule_date = ? and granule_channel = ? and proc_date = ?'''
-            self.conn.execute(sql, (r[0] + 1, status_code, success, facility, granule.start,
+            self.conn.execute(sql, (r[0] + 1, success, facility, granule.start,
                                     granule.channel, granule.proc_date))
 
         self.conn.commit()
@@ -125,7 +124,6 @@ def get_db_conn(db_dir):
                     proc_date timestamp,
                     orbit int,
                     sight_date timestamp, 
-                    status_code int,
                     count int,
                     success int,
                     PRIMARY KEY (source, granule_date, granule_channel, proc_date));''')

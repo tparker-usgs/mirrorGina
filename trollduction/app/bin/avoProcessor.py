@@ -23,7 +23,9 @@ import tomputils.mattermost as mm
 from trollimage import colormap
 import sys
 import traceback
+import argparse
 
+PRODUCTS = ('ir108', 'truecolor', 'btd')
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 PNG_DIR = '/data/viirs/png'
@@ -53,8 +55,9 @@ SECTORS = (('AKSC', '1km'),
           )
 
 class AvoProcessor(object):
-    def __init__(self):
+    def __init__(self, args):
         self.mattermost = mm.Mattermost(verbose=True)
+        self.product = args.product
 
     def process_message(self, msg):
         '''
@@ -99,35 +102,84 @@ class AvoProcessor(object):
             if coverage < .1 or not coverage > previous_coverage:
                 continue
 
-            global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
-            global_data.load(global_data.image.avoir.prerequisites, time_interval=(start_slack, end))
-            local_data = global_data.project(size_sector)
+            if self.product == 'ir108':
+                global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
+                global_data.load(global_data.image.avoir.prerequisites, time_interval=(start_slack, end))
+                local_data = global_data.project(size_sector)
 
-            img = local_data.image.avoir().pil_image()
+                img = local_data.image.avoir().pil_image()
 
-            dc = DecoratorAGG(img)
-            dc.align_bottom()
+                dc = DecoratorAGG(img)
+                dc.align_bottom()
 
-            font=aggdraw.Font((218,165,32),"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
-            colormap.greys.set_range(35, -65)
-            dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
-            dc.new_line()
-            start_string = start.strftime('%m/%d/%Y %H:%M UCT')
-            dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
+                font=aggdraw.Font((218,165,32),"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
+                colormap.greys.set_range(35, -65)
+                dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
+                dc.new_line()
+                start_string = start.strftime('%m/%d/%Y %H:%M UCT')
+                dc.add_text("%s Suomi-NPP VIIRS thermal infrared brightness temperature(C)" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
 
-            filepath = os.path.join(PNG_DIR, sector)
-            if not os.path.exists(filepath):
-                print("Making out dir " + filepath)
-                os.makedirs(filepath)
+                filepath = os.path.join(PNG_DIR, sector)
+                if not os.path.exists(filepath):
+                    print("Making out dir " + filepath)
+                    os.makedirs(filepath)
 
-            filename = "%s-ir-%s.png" % (size_sector, start.strftime('%Y%m%d-%H%M'))
-            filepath = os.path.join(filepath, filename)
+                filename = "%s-ir-%s.png" % (size_sector, start.strftime('%Y%m%d-%H%M'))
+                filepath = os.path.join(filepath, filename)
 
-            print("Saving to %s" % filepath)
-            img.save(filepath)
-            if images is None:
-                images
-            images.append((size_sector, coverage * 100))
+                print("Saving to %s" % filepath)
+                img.save(filepath)
+                images.append((size_sector, coverage * 100))
+            elif self.product == 'truecolor':
+                global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
+                global_data.load(global_data.image.truecolor.prerequisites, time_interval=(start_slack, end))
+                local_data = global_data.project(size_sector)
+
+                img = local_data.image.truecolor().pil_image()
+
+                dc = DecoratorAGG(img)
+                dc.align_bottom()
+
+                font=aggdraw.Font((218,165,32),"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
+                dc.new_line()
+                start_string = start.strftime('%m/%d/%Y %H:%M UCT')
+                dc.add_text("%s Suomi-NPP VIIRS true color" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
+
+                filepath = os.path.join(PNG_DIR, sector)
+                if not os.path.exists(filepath):
+                    print("Making out dir " + filepath)
+                    os.makedirs(filepath)
+
+                filename = "%s-truecolor-%s.png" % (size_sector, start.strftime('%Y%m%d-%H%M'))
+                filepath = os.path.join(filepath, filename)
+
+                print("Saving to %s" % filepath)
+                img.save(filepath)
+            elif self.product == 'btd':
+                global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
+                global_data.load(global_data.image.avoash.prerequisites, time_interval=(start_slack, end))
+                local_data = global_data.project(size_sector)
+
+                img = local_data.image.avoash().pil_image()
+
+                dc = DecoratorAGG(img)
+                dc.align_bottom()
+
+                font=aggdraw.Font((218,165,32),"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
+                dc.new_line()
+                start_string = start.strftime('%m/%d/%Y %H:%M UCT')
+                dc.add_text("%s Suomi-NPP VIIRS brightness temperature difference" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
+
+                filepath = os.path.join(PNG_DIR, sector)
+                if not os.path.exists(filepath):
+                    print("Making out dir " + filepath)
+                    os.makedirs(filepath)
+
+                filename = "%s-btd-%s.png" % (size_sector, start.strftime('%Y%m%d-%H%M'))
+                filepath = os.path.join(filepath, filename)
+
+                print("Saving to %s" % filepath)
+                img.save(filepath)
 
         proc_end = datetime.now()
         if len(images) < 1:
@@ -143,15 +195,24 @@ class AvoProcessor(object):
         msg += '\n**Accumulated delay** %s' % (mm.format_timedelta(proc_end - start))
         self.mattermost.post(msg)
 
+def arg_parse():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--product', choices=PRODUCTS,
+                        help="product to produce", required=True)
+
+    return parser.parse_args()
 
 def main():
-    processor = AvoProcessor()
-    with Subscribe('', "pytroll://ir108-EARS/Suomi-NPP/viirs/1b", True) as sub:
+    args = arg_parse()
+    processor = AvoProcessor(args)
+    with Subscribe('', "pytroll://%s-EARS/Suomi-NPP/viirs/1b" % args.product, True) as sub:
         for msg in sub.recv():
             try:
                 processor.process_message(msg)
             except:  # catch *all* exceptions
                 errmsg = "### Unexpected error "
+                errmsg += "\n**Product** %s" % args.product
                 e = sys.exc_info()
                 if len(e) == 3:
                     errmsg += '\n %s' % e[1]
