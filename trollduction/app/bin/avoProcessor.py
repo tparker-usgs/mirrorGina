@@ -25,7 +25,7 @@ import sys
 import traceback
 import argparse
 
-PRODUCTS = ('ir108', 'truecolor', 'btd')
+PRODUCTS = ('ir108', 'ir108hr', 'truecolor', 'btd')
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 PNG_DIR = '/data/viirs/png'
@@ -130,6 +130,35 @@ class AvoProcessor(object):
                 print("Saving to %s" % filepath)
                 img.save(filepath)
                 images.append((size_sector, coverage * 100))
+            elif self.product == 'ir108hr':
+                global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
+                global_data.load(global_data.image.avoirhr.prerequisites, time_interval=(start_slack, end))
+                local_data = global_data.project(size_sector)
+
+                img = local_data.image.avoirhr().pil_image()
+
+                dc = DecoratorAGG(img)
+                dc.align_bottom()
+
+                font=aggdraw.Font((218,165,32),"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
+                colormap.greys.set_range(35, -65)
+                dc.add_scale(colormap.greys, extend=True, tick_marks=10, minor_tick_marks=5, font=font, height=20, margins=[1,1],)
+                dc.new_line()
+                start_string = start.strftime('%m/%d/%Y %H:%M UCT')
+                dc.add_text("%s Suomi-NPP VIIRS HR thermal infrared brightness temperature(C)" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
+
+                filepath = os.path.join(PNG_DIR, sector)
+                if not os.path.exists(filepath):
+                    print("Making out dir " + filepath)
+                    os.makedirs(filepath)
+
+                filename = "%s-irhr-%s.png" % (size_sector, start.strftime('%Y%m%d-%H%M'))
+                filepath = os.path.join(filepath, filename)
+
+                print("Saving to %s" % filepath)
+                img.save(filepath)
+                images.append((size_sector, coverage * 100))
+
             elif self.product == 'truecolor':
                 global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
                 global_data.load(global_data.image.truecolor.prerequisites, time_interval=(start_slack, end))
@@ -157,10 +186,10 @@ class AvoProcessor(object):
                 img.save(filepath)
             elif self.product == 'btd':
                 global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
-                global_data.load(global_data.image.avoash.prerequisites, time_interval=(start_slack, end))
+                global_data.load(global_data.image.avobtd.prerequisites, time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
 
-                img = local_data.image.avoash().pil_image()
+                img = local_data.image.avobtd().pil_image()
 
                 dc = DecoratorAGG(img)
                 dc.align_bottom()

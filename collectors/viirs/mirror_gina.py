@@ -38,12 +38,21 @@ from urllib2 import HTTPRedirectHandler
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
 
-INSTRUMENTS = {'viirs': {
+INSTRUMENTS = {
+    'viirs': {
     'name': 'viirs',
     'level': 'level1',
     'out_path': 'viirs/sdr',
     'match': '/(GMTCO|SVM03|SVM04|SVM05|SVM15|SVM16)_'
-    }}
+    },
+    'viirs_hr': {
+        'name': 'viirs',
+        'level': 'level1',
+        'out_path': 'viirs/sdr',
+        'match': '/(GITCO|SVI05)_'
+    }
+
+}
 
 FACILITIES = ('uafgina', 'gilmore')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'

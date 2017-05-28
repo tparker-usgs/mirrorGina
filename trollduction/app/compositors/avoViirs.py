@@ -30,8 +30,29 @@ def avoir(self):
 
 avoir.prerequisites = set(["M15"])
 
+def avoirhr(self):
+    """Make a black and white image of the IR 10.8um channel (320m).
+       Modeled after mpop.instruments.viirs.ir108
+    """
+    self.check_channels("I05")
+    data = self["I05"].data
+    range = (-65 + 273.15, 35 + 273.15)
+    img = geo_image.GeoImage((data, data, data),
+                                self.area,
+                                self.time_slot,
+                                fill_value=None,
+                                mode="RGB",
+                                crange=(range, range, range))
+    # clouds should be white
+    img.enhance(inverse=True)
 
-def avoash(self):
+    img.add_overlay(color=(218,165,32))
+
+    return img
+
+avoirhr.prerequisites = set(["I05"])
+
+def avobtd(self):
     """Make BTD composite.
     """
     self.check_channels('M15', 'M16')
@@ -44,7 +65,7 @@ def avoash(self):
     img.colorize(rdgy)
     return img
 
-avoash.prerequisites = set(["M15", "M16"])
+avobtd.prerequisites = set(["M15", "M16"])
 
 
-viirs = [avoir, avoash]
+viirs = [avoir, avoirhr, avobtd]
