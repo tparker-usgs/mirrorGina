@@ -25,7 +25,7 @@ import sys
 import traceback
 import argparse
 
-PRODUCTS = ('ir108', 'truecolor')
+PRODUCTS = ('ir108', 'truecolor', 'btd')
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 PNG_DIR = '/data/viirs/png'
@@ -151,6 +151,31 @@ class AvoProcessor(object):
                     os.makedirs(filepath)
 
                 filename = "%s-truecolor-%s.png" % (size_sector, start.strftime('%Y%m%d-%H%M'))
+                filepath = os.path.join(filepath, filename)
+
+                print("Saving to %s" % filepath)
+                img.save(filepath)
+            elif self.product == 'btd':
+                global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
+                global_data.load(global_data.image.avoash.prerequisites, time_interval=(start_slack, end))
+                local_data = global_data.project(size_sector)
+
+                img = local_data.image.avoash().pil_image()
+
+                dc = DecoratorAGG(img)
+                dc.align_bottom()
+
+                font=aggdraw.Font((218,165,32),"/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",size=14)
+                dc.new_line()
+                start_string = start.strftime('%m/%d/%Y %H:%M UCT')
+                dc.add_text("%s Suomi-NPP VIIRS brightness temperature difference" % start_string, font=font, height=30, extend=True, bg_opacity=255, bg='black')
+
+                filepath = os.path.join(PNG_DIR, sector)
+                if not os.path.exists(filepath):
+                    print("Making out dir " + filepath)
+                    os.makedirs(filepath)
+
+                filename = "%s-btd-%s.png" % (size_sector, start.strftime('%Y%m%d-%H%M'))
                 filepath = os.path.join(filepath, filename)
 
                 print("Saving to %s" % filepath)
