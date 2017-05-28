@@ -2,7 +2,7 @@ import mpop.imageo.geo_image as geo_image
 #from PIL import Image
 from pydecorate import DecoratorAGG
 import aggdraw
-from trollimage.colormap import rdbu
+from trollimage.colormap import rdgy
 from trollimage.colormap import Colormap
 from trollsched.satpass import Pass
 from pprint import pprint
@@ -41,13 +41,10 @@ def avoash(self):
                              fill_value=0,
                              mode="L",
                              crange=(-70 + 273.15, 57.5 + 273.15))
-    img.colorize(avoash_colormap)
+    img.colorize(rdgy)
     return img
 
 avoash.prerequisites = set(["M15", "M16"])
-avoash_colormap = Colormap((0.000, (0, 0, 0)),
-                (0.500, (1, 1, 1)),
-                (1.000, (2 / 255.0, 56 / 255.0, 88 / 255.0)))
 
 
-viirs = [avoir]
+viirs = [avoir, avoash]
