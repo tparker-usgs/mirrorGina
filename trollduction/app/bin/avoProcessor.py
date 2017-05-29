@@ -108,7 +108,7 @@ class AvoProcessor(object):
                 local_data = global_data.project(size_sector)
 
                 img = local_data.image.avoir().pil_image()
-
+                img.add_overlay(color=(218, 165, 32))
                 dc = DecoratorAGG(img)
                 dc.align_bottom()
 
@@ -136,7 +136,7 @@ class AvoProcessor(object):
                 local_data = global_data.project(size_sector)
 
                 img = local_data.image.avoirhr().pil_image()
-
+                img.add_overlay(color=(218, 165, 32))
                 dc = DecoratorAGG(img)
                 dc.align_bottom()
 
@@ -165,7 +165,7 @@ class AvoProcessor(object):
                 local_data = global_data.project(size_sector)
 
                 img = local_data.image.truecolor().pil_image()
-
+                img.add_overlay(color=(218, 165, 32))
                 dc = DecoratorAGG(img)
                 dc.align_bottom()
 
@@ -190,7 +190,7 @@ class AvoProcessor(object):
                 local_data = global_data.project(size_sector)
 
                 img = local_data.image.avobtd().pil_image()
-
+                img.add_overlay(color=(218, 165, 32))
                 dc = DecoratorAGG(img)
                 dc.align_bottom()
 

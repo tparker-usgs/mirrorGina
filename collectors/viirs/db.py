@@ -43,7 +43,7 @@ class Db(object):
         """
         q = self.conn.execute('''SELECT MAX(proc_date) FROM sighting 
                                  WHERE granule_date = ? AND success = ? AND source = ?''',
-                              (granule.start, True, facility))
+                              (granule.prepare, True, facility))
         r = q.fetchone()
         if r is None or r[0] is None:
             return None
@@ -74,19 +74,19 @@ class Db(object):
         sql = '''SELECT count FROM sighting 
                  WHERE source = ? AND granule_date = ? 
                  AND granule_channel = ? AND proc_date = ?'''
-        q = self.conn.execute(sql, (facility, granule.start, granule.channel, granule.proc_date))
+        q = self.conn.execute(sql, (facility, granule.prepare, granule.channel, granule.proc_date))
         r = q.fetchone()
         if r is None:
             sql = '''INSERT INTO sighting 
                      (source, granule_date, granule_channel, orbit, sight_date, 
                       proc_date, count, success) 
                       VALUES (?, ?, ?, ?, ?, ?, 1, ?)'''
-            self.conn.execute(sql, (facility, granule.start, granule.channel, granule.orbit,
+            self.conn.execute(sql, (facility, granule.prepare, granule.channel, granule.orbit,
                                     sight_date, granule.proc_date, success))
         else:
             sql = '''UPDATE sighting set count = ?, success = ? 
                      WHERE source = ? AND granule_date = ? and granule_channel = ? and proc_date = ?'''
-            self.conn.execute(sql, (r[0] + 1, success, facility, granule.start,
+            self.conn.execute(sql, (r[0] + 1, success, facility, granule.prepare,
                                     granule.channel, granule.proc_date))
 
         self.conn.commit()
@@ -94,7 +94,7 @@ class Db(object):
     def get_proc_count(self, granule, facility):
         q = self.conn.execute('SELECT COUNT(*) FROM sighting WHERE granule_date = ?' +
                               ' AND granule_channel = ? AND success = ? AND source = ?',
-                              (granule.start, granule.channel, True, facility))
+                              (granule.prepare, granule.channel, True, facility))
 
         return q.fetchone()[0]
 

@@ -24,8 +24,6 @@ def avoir(self):
     # clouds should be white
     img.enhance(inverse=True)
 
-    img.add_overlay(color=(218,165,32))
-
     return img
 
 avoir.prerequisites = set(["M15"])
@@ -46,8 +44,6 @@ def avoirhr(self):
     # clouds should be white
     img.enhance(inverse=True)
 
-    img.add_overlay(color=(218,165,32))
-
     return img
 
 avoirhr.prerequisites = set(["I05"])
@@ -61,7 +57,7 @@ def avobtd(self):
                              self.time_slot,
                              fill_value=0,
                              mode="L",
-                             crange=(-6, 5))
+                             crange=(-6 + 273.15, 5 + 273.15))
     img.colorize(rdgy)
     return img
 
