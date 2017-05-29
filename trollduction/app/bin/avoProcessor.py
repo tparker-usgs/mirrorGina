@@ -118,8 +118,8 @@ class AvoProcessor(object):
                 pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS" \
                         "thermal infrared brightness temperature(C)"
+                colormap.greys.set_range(35, -65)
                 img_colormap = colormap.greys
-                colormap_range = (35, -65)
                 tick_marks = 10
                 minor_tick_marks = 5
             elif self.product == 'ir108hr':
@@ -131,8 +131,8 @@ class AvoProcessor(object):
                 pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS HR " \
                         "thermal infrared brightness temperature(C)"
+                colormap.greys.set_range(35, -65)
                 img_colormap = colormap.greys
-                colormap_range = (35, -65)
                 tick_marks = 10
                 minor_tick_marks = 5
             elif self.product == 'truecolor':
@@ -151,8 +151,8 @@ class AvoProcessor(object):
                 img.add_overlay(color=GOLDENROD)
                 pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS brightness temperature difference"
+                colormap.rdgy.set_range(5, -6)
                 img_colormap = colormap.rdgy
-                colormap_range = (5, -6)
                 tick_marks = 1
                 minor_tick_marks = .5
             else:
@@ -164,7 +164,6 @@ class AvoProcessor(object):
             typeface = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
             font = aggdraw.Font(GOLDENROD, typeface, size=14)
             if img_colormap is not None:
-                img_colormap.set_range(colormap_range)
                 dc.add_scale(img_colormap, extend=True, tick_marks=tick_marks,
                              minor_tick_marks=minor_tick_marks, font=font,
                              height=20, margins=[1, 1], )
