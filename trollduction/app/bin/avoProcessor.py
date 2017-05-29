@@ -112,36 +112,42 @@ class AvoProcessor(object):
                 global_data.load(global_data.image.avoir.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
-                local_data.image.add_overlay(color=GOLDENROD)
-                img = local_data.image.avoir().pil_image()
+                img = local_data.image.avoir()
+                img.add_overlay(color=GOLDENROD)
+                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS" \
                         "thermal infrared brightness temperature(C)"
             elif self.product == 'ir108hr':
                 global_data.load(global_data.image.avoirhr.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
-                local_data.image.add_overlay(color=GOLDENROD)
-                img = local_data.image.avoirhr().pil_image()
+                img = local_data.image.avoirhr()
+                img.add_overlay(color=GOLDENROD)
+                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS HR" \
                         "thermal infrared brightness temperature(C)"
             elif self.product == 'truecolor':
                 global_data.load(global_data.image.truecolor.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
-                local_data.image.add_overlay(color=GOLDENROD)
-                img = local_data.image.truecolor().pil_image()
+                img = local_data.image.truecolor()
+                img.add_overlay(color=GOLDENROD)
+                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS true color"
             elif self.product == 'btd':
                 global_data.load(global_data.image.avobtd.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
-                local_data.image.add_overlay(color=GOLDENROD)
-                img = local_data.image.avobtd().pil_image()
+                img = local_data.image.avobtd()
+                img.add_overlay(color=GOLDENROD)
+                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS brightness temperature difference"
             else:
                 raise Exception("unknown product")
 
-            dc = DecoratorAGG(img)
+
+
+            dc = DecoratorAGG(pilimg)
             dc.align_bottom()
 
             typeface = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
@@ -161,7 +167,7 @@ class AvoProcessor(object):
             filepath = os.path.join(filepath, filename)
 
             print("Saving to %s" % filepath)
-            img.save(filepath)
+            pilimg.save(filepath)
 
         proc_end = datetime.now()
         if len(images) < 1:
