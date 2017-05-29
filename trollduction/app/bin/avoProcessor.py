@@ -162,8 +162,9 @@ class AvoProcessor(object):
                 print("Making out dir " + filepath)
                 os.makedirs(filepath)
 
-            filename = "%s-btd-%s.png" % (size_sector,
-                                          start.strftime('%Y%m%d-%H%M'))
+            filename = "%s-%s-%s.png" % (size_sector,
+                                         self.product,
+                                         start.strftime('%Y%m%d-%H%M'))
             filepath = os.path.join(filepath, filename)
 
             print("Saving to %s" % filepath)
