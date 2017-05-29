@@ -108,6 +108,7 @@ class AvoProcessor(object):
             global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs",
                                                     start_slack,
                                                     data["orbit_number"])
+            img_colormap = None
             if self.product == 'ir108':
                 global_data.load(global_data.image.avoir.prerequisites,
                                  time_interval=(start_slack, end))
@@ -117,6 +118,10 @@ class AvoProcessor(object):
                 pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS" \
                         "thermal infrared brightness temperature(C)"
+                img_colormap = colormap.greys
+                colormap_range = (35, -65)
+                tick_marks = 10
+                minor_tick_marks = 5
             elif self.product == 'ir108hr':
                 global_data.load(global_data.image.avoirhr.prerequisites,
                                  time_interval=(start_slack, end))
@@ -124,8 +129,12 @@ class AvoProcessor(object):
                 img = local_data.image.avoirhr()
                 img.add_overlay(color=GOLDENROD)
                 pilimg = img.pil_image()
-                label = "%s Suomi-NPP VIIRS HR" \
+                label = "%s Suomi-NPP VIIRS HR " \
                         "thermal infrared brightness temperature(C)"
+                img_colormap = colormap.greys
+                colormap_range = (35, -65)
+                tick_marks = 10
+                minor_tick_marks = 5
             elif self.product == 'truecolor':
                 global_data.load(global_data.image.truecolor.prerequisites,
                                  time_interval=(start_slack, end))
@@ -142,17 +151,24 @@ class AvoProcessor(object):
                 img.add_overlay(color=GOLDENROD)
                 pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS brightness temperature difference"
+                img_colormap = colormap.rdgy
+                colormap_range = (5, -6)
+                tick_marks = 1
+                minor_tick_marks = .5
             else:
                 raise Exception("unknown product")
-
-
 
             dc = DecoratorAGG(pilimg)
             dc.align_bottom()
 
             typeface = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
             font = aggdraw.Font(GOLDENROD, typeface, size=14)
-            dc.new_line()
+            if img_colormap is not None:
+                img_colormap.set_range(colormap_range)
+                dc.add_scale(img_colormap, extend=True, tick_marks=tick_marks,
+                             minor_tick_marks=minor_tick_marks, font=font,
+                             height=20, margins=[1, 1], )
+                dc.new_line()
             start_string = start.strftime('%m/%d/%Y %H:%M UCT')
             dc.add_text(label % start_string, font=font, height=30,
                         extend=True, bg_opacity=255, bg='black')
