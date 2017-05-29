@@ -188,9 +188,9 @@ class AvoProcessor(object):
                 global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs", start_slack, data["orbit_number"])
                 global_data.load(global_data.image.avobtd.prerequisites, time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
+                local_data.image.add_overlay(color=(218, 165, 32))
 
                 img = local_data.image.avobtd().pil_image()
-                img.add_overlay(color=(218, 165, 32))
                 dc = DecoratorAGG(img)
                 dc.align_bottom()
 
