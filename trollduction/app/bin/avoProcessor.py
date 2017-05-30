@@ -25,7 +25,7 @@ import sys
 import traceback
 import argparse
 
-PRODUCTS = ('ir108', 'ir108hr', 'truecolor', 'btd')
+PRODUCTS = ('ir108', 'ir108hr', 'truecolor', 'btd', 'vis', 'mir')
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 GOLDENROD = (218, 165, 32)
@@ -135,6 +135,30 @@ class AvoProcessor(object):
                 img_colormap = colormap.greys
                 tick_marks = 10
                 minor_tick_marks = 5
+            elif self.product == 'vis':
+                global_data.load(global_data.image.avovis.prerequisites,
+                                 time_interval=(start_slack, end))
+                local_data = global_data.project(size_sector)
+                img = local_data.image.avovis()
+                img.add_overlay(color=GOLDENROD)
+                pilimg = img.pil_image()
+                label = "%s Suomi-NPP VIIRS visible reflectance (percent)"
+                colormap.greys.set_range(0, 100)
+                img_colormap = colormap.greys
+                tick_marks = 20
+                minor_tick_marks = 10
+            elif self.product == 'mir':
+                global_data.load(global_data.image.avovis.prerequisites,
+                                 time_interval=(start_slack, end))
+                local_data = global_data.project(size_sector)
+                img = local_data.image.avomir()
+                img.add_overlay(color=GOLDENROD)
+                pilimg = img.pil_image()
+                label = "%s Suomi-NPP VIIRS mid-infrared brightness temperature (c)"
+                colormap.greys.set_range(0, 100)
+                img_colormap = colormap.greys
+                tick_marks = 20
+                minor_tick_marks = 10
             elif self.product == 'truecolor':
                 global_data.load(global_data.image.truecolor.prerequisites,
                                  time_interval=(start_slack, end))

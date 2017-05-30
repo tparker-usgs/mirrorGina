@@ -48,6 +48,43 @@ def avoirhr(self):
 
 avoirhr.prerequisites = set(["I05"])
 
+def avovis(self):
+    """Make a black and white image of the IR 10.8um channel (320m).
+       Modeled after mpop.instruments.viirs.ir108
+    """
+    self.check_channels("I01")
+    data = self["I01"].data
+    range = (0 + 273.15, 100 + 273.15)
+    img = geo_image.GeoImage((data, data, data),
+                                self.area,
+                                self.time_slot,
+                                fill_value=None,
+                                mode="RGB",
+                                crange=(range, range, range))
+    # clouds should be white
+    img.enhance(inverse=True)
+
+    return img
+
+avovis.prerequisites = set(["I01"])
+
+def avomir(self):
+    """Make a black and white image of the IR 10.8um channel (320m).
+       Modeled after mpop.instruments.viirs.ir108
+    """
+    self.check_channels("I04")
+    data = self["I01"].data
+    range = (0 + 273.15, 100 + 273.15)
+    img = geo_image.GeoImage((data, data, data),
+                                self.area,
+                                self.time_slot,
+                                fill_value=None,
+                                mode="RGB",
+                                crange=(range, range, range))
+    return img
+
+avomir.prerequisites = set(["I04"])
+
 def avobtd(self):
     """Make BTD composite.
     """
@@ -73,4 +110,4 @@ avobtd.colormap = Colormap((0.0, (0.5, 0.0, 0.0)),
                            (0.5500, (0.5, 0.5, 0.5)),
                            (1.0, (1.0, 1.0, 1.0)))
 
-viirs = [avoir, avoirhr, avobtd]
+viirs = [avoir, avoirhr, avobtd, avovis, avomir]
