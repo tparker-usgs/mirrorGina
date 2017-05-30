@@ -152,7 +152,7 @@ class AvoProcessor(object):
                 pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS brightness temperature difference"
                 colormap.rdgy.set_range(5, -6)
-                img_colormap = colormap.rdgy
+                img_colormap = global_data.image.avobtd.colormap
                 tick_marks = 1
                 minor_tick_marks = .5
             else:
