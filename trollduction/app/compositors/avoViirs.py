@@ -55,7 +55,7 @@ def avobtd(self):
     img = geo_image.GeoImage(self["M15"].data - self["M16"].data,
                              self.area,
                              self.time_slot,
-                             fill_value=0,
+                             fill_value=None,
                              mode="L",
                              crange=(-6, 5))
     img.colorize(rdgy)
