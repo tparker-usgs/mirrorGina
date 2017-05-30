@@ -95,7 +95,7 @@ def avobtd(self):
                              fill_value=None,
                              mode="L",
                              crange=(-6, 5))
-    img.colorize(rdgy)
+    img.colorize(avobtd.colormap)
     return img
 
 avobtd.prerequisites = set(["M15", "M16"])
