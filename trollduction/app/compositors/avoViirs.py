@@ -62,7 +62,7 @@ def avobtd(self):
     return img
 
 avobtd.prerequisites = set(["M15", "M16"])
-avobtd.colormap = Colormap((0.0625, (0.5, 0.0, 0.0))
+avobtd.colormap = Colormap((0.0625, (0.5, 0.0, 0.0)),
                            (0.1250, (1.0, 0.0, 0.0)),
                            (0.1875, (1.0, 0.5, 0.0)),
                            (0.2500, (1.0, 1.0, 0.0)),
