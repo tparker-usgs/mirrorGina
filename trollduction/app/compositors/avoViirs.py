@@ -57,7 +57,7 @@ def avobtd(self):
                              self.time_slot,
                              fill_value=0,
                              mode="L",
-                             crange=(-6 + 273.15, 5 + 273.15))
+                             crange=(-6, 5))
     img.colorize(rdgy)
     return img
 
