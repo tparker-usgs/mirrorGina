@@ -73,7 +73,7 @@ def avomir(self):
        Modeled after mpop.instruments.viirs.ir108
     """
     self.check_channels("I04")
-    data = self["I01"].data
+    data = self["I04"].data
     range = (0 + 273.15, 100 + 273.15)
     img = geo_image.GeoImage((data, data, data),
                                 self.area,
