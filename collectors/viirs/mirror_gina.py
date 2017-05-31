@@ -31,9 +31,7 @@ import socket
 import viirs
 from db import Db
 import h5py
-from pyflit import flit
-
-from urllib2 import HTTPRedirectHandler
+from tomputils.downloader import fetch
 
 DEFAULT_BACKFILL = 2
 DEFAULT_NUM_CONN = 5
@@ -83,12 +81,14 @@ class MirrorGina(object):
         self._backfill = args.backfill
         self.logger.debug("backfill: %s", self._backfill)
 
-        self.out_path = os.path.join(OUT_DIR, self._instrument['out_path'], self.args.facility)
+        self.out_path = os.path.join(OUT_DIR, self._instrument['out_path'],
+                                     self.args.facility)
         if not os.path.exists(self.out_path):
             self.logger.debug("Making out dir " + self.out_path)
             os.makedirs(self.out_path)
 
-        self.tmp_path = os.path.join(TMP_DIR, self._instrument['out_path'], self.args.facility)
+        self.tmp_path = os.path.join(TMP_DIR, self._instrument['out_path'],
+                                     self.args.facility)
         if not os.path.exists(self.tmp_path):
             self.logger.debug("Making out dir " + self.tmp_path)
             os.makedirs(self.tmp_path)
@@ -118,7 +118,7 @@ class MirrorGina(object):
         return logger
 
     def get_file_list(self):
-        self.logger.debug("fetching files")	
+        self.logger.debug("fetching files")
         backfill = timedelta(days=self._backfill)
         end_date = datetime.utcnow() + timedelta(days=1)
         start_date = end_date - backfill
@@ -141,7 +141,8 @@ class MirrorGina(object):
         buf.close()
 
         self.logger.info("Found %s files", len(files))
-        files = sorted(files, key=lambda k: k['url'], cmp=viirs.filename_comparator)
+        files = sorted(files, key=lambda k: k['url'],
+                       cmp=viirs.filename_comparator)
         return files
 
     def queue_files(self, file_list):
@@ -198,59 +199,65 @@ class MirrorGina(object):
             pause = timedelta(hours=1)
 
             # post new orbit messasge
-            orbit_proc_time = self.conn.get_orbit_proctime(self.args.facility, granule)
-            granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
+            orbit_proc_time = self.conn.get_orbit_proctime(self.args.facility,
+                                                           granule)
+            gran_proc_time = self.conn.get_granule_proctime(self.args.facility,
+                                                            granule)
 
             orb_msg = None
             if orbit_proc_time is None:
-                orb_msg = '### :earth_americas: New orbit from %s: %d' % (self.args.facility, granule.orbit)
+                msg = '### :earth_americas: New orbit from %s: %d'
+                orb_msg = msg % (self.args.facility, granule.orbit)
             elif granule.proc_date > orbit_proc_time + pause:
-                orb_msg = '### :snail: _Reprocessed orbit_ from %s: %d' % (self.args.facility, granule.orbit)
+                msg = '### :snail: _Reprocessed orbit_ from %s: %d'
+                orb_msg = msg % (self.args.facility, granule.orbit)
 
             if orb_msg is not None:
-                orb_msg += '\n**First granule** %s (%s)' % (mm.format_span(granule.start, granule.end), granule.channel)
-                count = self.conn.get_orbit_granule_count(granule.orbit - 1, self.args.facility)
-                orb_msg += '\n**Granules seen from orbit %d** %d' % (granule.orbit - 1, count)
+                msg = '\n**First granule** %s (%s)'
+                orb_msg += msg % (mm.format_span(granule.start, granule.end),
+                                  granule.channel)
+                count = self.conn.get_orbit_granule_count(granule.orbit - 1,
+                                                          self.args.facility)
+                msg = '\n**Granules seen from orbit %d** %d'
+                orb_msg += msg % (granule.orbit - 1, count)
                 self.mattermost.post(orb_msg)
 
             # post new granule message
-            if granule_proc_time is None:
-                msg = '### :satellite: New granule from %s' % self.args.facility
-            elif granule.proc_date > granule_proc_time + pause:
-                msg = '### :snail: _Reprocessed granule_ from %s' % self.args.facility
+            if gran_proc_time is None:
+                msg = '### :satellite: New granule from %s'
+                gran_msg = msg % self.args.facility
+            elif granule.proc_date > gran_proc_time + pause:
+                msg = '### :snail: _Reprocessed granule_ from %s'
+                gran_msg = msg % self.args.facility
 
-            if msg is not None:
-                granle_span = mm.format_span(granule.start, granule.end)
-                granule_delta = mm.format_timedelta(granule.end - granule.start)
-                msg += '\n**Granule span** %s (%s)' % (granle_span, granule_delta)
-                granule_proc_time = self.conn.get_granule_proctime(self.args.facility, granule)
-                msg += '\n**Processing delay** %s' % mm.format_timedelta(proc_time)
-                msg += '\n**Transfer delay** %s' % mm.format_timedelta(trans_time)
-                msg += '\n**Accumulated delay** %s' % mm.format_timedelta(proc_time + trans_time)
+            if gran_msg is not None:
+                gran_span = mm.format_span(granule.start, granule.end)
+                gran_delta = mm.format_timedelta(granule.end - granule.start)
+                msg = '\n**Granule span** %s (%s)'
+                gran_msg += msg % (gran_span, gran_delta)
+                msg = '\n**Processing delay** %s'
+                gran_msg += msg % mm.format_timedelta(proc_time)
+                msg = '\n**Transfer delay** %s'
+                gran_msg += msg % mm.format_timedelta(trans_time)
+                msg = '\n**Accumulated delay** %s'
+                gran_msg += msg % mm.format_timedelta(proc_time + trans_time)
 
                 if message:
-                    msg += '\n**Message: %s' % message
+                    gran_msg += '\n**Message: %s' % message
 
-        if msg is not None:
-            self.mattermost.post(msg)
+        if gran_msg is not None:
+            self.mattermost.post(gran_msg)
 
         self.conn.insert_obs(self.args.facility, granule, sight_date, success)
 
     def fetch_files(self):
-        # modeled after retiever-multi.py from pycurl
-        file_list = self.get_file_list()
-        file_queue = self.queue_files(file_list)
-
-        while file_queue:
-            new_file = file_queue.pop(0)
-            url = new_file['url']
+        for file in self.get_file_list():
+            url = file['url']
             tmp_file = path_from_url(self.tmp_path, url)
-            segment_number = 2
-            opener = flit.get_opener()
-            flit.flit_segments(url, segment_number, opener, outfile=tmp_file)
-            md5 = new_file['md5sum']
+            fetch(url, tmp_file)
+            md5 = file['md5sum']
             file_md5 = hashlib.md5(open(tmp_file, 'rb').read()).hexdigest()
-            self.logger.debug(str(md5) + " : " + str(file_md5))
+            self.logger.debug("MD5 %s : %s" % (md5, file_md5))
 
             if md5 == file_md5:
                 try:
@@ -267,7 +274,8 @@ class MirrorGina(object):
             else:
                 success = False
                 size = os.path.getsize(tmp_file)
-                errmsg = 'Bad checksum: %s != %s (%d bytes)' % (file_md5, md5, size)
+                msg = 'Bad checksum: %s != %s (%d bytes)'
+                errmsg = msg % (file_md5, md5, size)
                 os.unlink(tmp_file)
 
             self._log_sighting(tmp_file, success, message=errmsg)
@@ -305,6 +313,7 @@ def main():
 
     mirror_gina = MirrorGina(args)
     mirror_gina.fetch_files()
+
 
 if __name__ == "__main__":
     main()
