@@ -229,9 +229,9 @@ class MirrorGina(object):
             elif granule.proc_date > gran_proc_time + pause:
                 msg = '### :snail: _Reprocessed granule_ from %s'
                 gran_msg = msg % self.args.facility
-            else
+            else:
                 gran_msg = None
-                
+
             if gran_msg is not None:
                 gran_span = mm.format_span(granule.start, granule.end)
                 gran_delta = mm.format_timedelta(granule.end - granule.start)
