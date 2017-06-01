@@ -2,5 +2,4 @@ pycurl
 requests
 python-dateutil
 h5py
-tomputils>=1.0.6
-git+git://github.com/tparker-usgs/pyflit@filename
+tomputils>=1.0.7
