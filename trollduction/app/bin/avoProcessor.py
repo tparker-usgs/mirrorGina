@@ -196,9 +196,8 @@ class AvoProcessor(object):
 
             lat = float(sector_def.proj_dict['lat_0'])
             lon = float(sector_def.proj_dict['lon_0'])
-            print "TOMP SAYS: lat: %f lon: %f" % (lat, lon)
             passes = Orbital("Suomi-NPP").get_next_passes(start_slack, 1,
-                                                          lon, lat, sector_def)
+                                                          lon, lat, 0)
             if passes is not None:
                 file_start = passes[0][0]
             else:
