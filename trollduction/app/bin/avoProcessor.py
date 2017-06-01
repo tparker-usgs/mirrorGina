@@ -7,6 +7,7 @@ from pprint import pprint
 from mpop.satellites import PolarFactory
 from datetime import timedelta, datetime
 from dateutil import parser
+from pyorbital.orbital import Orbital
 from mpop.utils import debug_on
 from trollsched.satpass import Pass
 from mpop.projector import get_area_def
@@ -192,7 +193,12 @@ class AvoProcessor(object):
                              minor_tick_marks=minor_tick_marks, font=font,
                              height=20, margins=[1, 1], )
                 dc.new_line()
-            start_string = start.strftime('%m/%d/%Y %H:%M UCT')
+            passes = Orbital("Suomi-NPP").get_next_passes(start_slack, sector_def)
+            if passes is not None:
+                file_start = passes[0][0]
+            else:
+                file_start = start
+            start_string = file_start.strftime('%m/%d/%Y %H:%M UCT')
             dc.add_text(label % start_string, font=font, height=30,
                         extend=True, bg_opacity=255, bg='black')
 
@@ -203,7 +209,7 @@ class AvoProcessor(object):
 
             filename = "%s-%s-%s.png" % (size_sector,
                                          self.product,
-                                         start.strftime('%Y%m%d-%H%M'))
+                                         file_start.strftime('%Y%m%d-%H%M'))
             filepath = os.path.join(filepath, filename)
 
             print("Saving to %s" % filepath)
