@@ -251,9 +251,13 @@ class MirrorGina(object):
         self.conn.insert_obs(self.args.facility, granule, sight_date, success)
 
     def fetch_files(self):
-        for file in self.get_file_list():
+        file_list = self.get_file_list()
+        file_queue = self.queue_files(file_list)
+
+        for file in file_queue:
             url = file['url']
             tmp_file = path_from_url(self.tmp_path, url)
+            self.logger.debug("Fetching %s from %s" % (tmp_file, url))
             fetch(url, tmp_file)
             md5 = file['md5sum']
             file_md5 = hashlib.md5(open(tmp_file, 'rb').read()).hexdigest()
