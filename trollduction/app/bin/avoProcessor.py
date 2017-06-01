@@ -193,7 +193,11 @@ class AvoProcessor(object):
                              minor_tick_marks=minor_tick_marks, font=font,
                              height=20, margins=[1, 1], )
                 dc.new_line()
-            passes = Orbital("Suomi-NPP").get_next_passes(start_slack, sector_def)
+
+            lat = sector_def.proj_dict['lat_0']
+            lon = sector_def.proj_dict['lon_0']
+            passes = Orbital("Suomi-NPP").get_next_passes(start_slack, 1,
+                                                          lon, lat, sector_def)
             if passes is not None:
                 file_start = passes[0][0]
             else:
