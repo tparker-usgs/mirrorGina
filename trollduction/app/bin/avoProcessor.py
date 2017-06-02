@@ -149,7 +149,7 @@ class AvoProcessor(object):
                 tick_marks = 20
                 minor_tick_marks = 10
             elif self.product == 'mir':
-                global_data.load(global_data.image.avovis.prerequisites,
+                global_data.load(global_data.image.avomir.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avomir()
