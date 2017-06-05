@@ -26,7 +26,12 @@ import sys
 import traceback
 import argparse
 
-PRODUCTS = ('ir108', 'ir108hr', 'truecolor', 'btd', 'vis', 'mir')
+PRODUCTS = {'ir108': 'TIR',
+            'ir108hr': 'TIR',
+            'truecolor': 'VIS',
+            'btd': 'ASH',
+            'vis': 'VIS',
+            'mir': 'MIR'}
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 GOLDENROD = (218, 165, 32)
@@ -211,9 +216,14 @@ class AvoProcessor(object):
                 print("Making out dir " + filepath)
                 os.makedirs(filepath)
 
-            filename = "%s-%s-%s.png" % (size_sector,
-                                         self.product,
-                                         file_start.strftime('%Y%m%d-%H%M'))
+            #filename = "%s-%s-%s.png" % (size_sector,
+            #                             self.product,
+            #                             file_start.strftime('%Y%m%d-%H%M'))
+
+            filename = "%s.viirs.--.--.%s.%s.png" % (
+                file_start.strftime('%Y%m%d.%H%M'), size_sector, PRODUCTS[self.product])
+
+
             filepath = os.path.join(filepath, filename)
 
             print("Saving to %s" % filepath)
@@ -240,7 +250,7 @@ class AvoProcessor(object):
 def arg_parse():
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('-p', '--product', choices=PRODUCTS,
+    arg_parser.add_argument('-p', '--product', choices=dict.keys(PRODUCTS),
                         help="product to produce", required=True)
 
     return arg_parser.parse_args()
