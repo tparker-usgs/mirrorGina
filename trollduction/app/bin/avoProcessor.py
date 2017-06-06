@@ -161,7 +161,7 @@ class AvoProcessor(object):
                 img.add_overlay(color=GOLDENROD)
                 pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS mid-infrared brightness temperature (c)"
-                colormap.greys.set_range(0, 100)
+                colormap.greys.set_range(-50, 50)
                 img_colormap = colormap.greys
                 tick_marks = 20
                 minor_tick_marks = 10

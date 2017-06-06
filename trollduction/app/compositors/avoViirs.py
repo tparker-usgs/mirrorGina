@@ -11,7 +11,6 @@ from mpop.projector import get_area_def
 
 C0 = 273.15
 
-
 def avoir(self):
     """Make a black and white image of the IR 10.8um channel (320m).
        Modeled after mpop.instruments.viirs.ir108
