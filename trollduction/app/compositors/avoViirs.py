@@ -86,6 +86,8 @@ def avomir(self):
                                 crange=(range, range, range))
     return img
 avomir.prerequisites = set(["I04"])
+avomir.colormap = Colormap((0.0, (0.0, 0.0, 0.0)),
+                           (1.0, (1.0, 1.0, 1.0)))
 
 
 def avobtd(self):

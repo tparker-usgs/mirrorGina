@@ -160,9 +160,10 @@ class AvoProcessor(object):
                 img = local_data.image.avomir()
                 img.add_overlay(color=GOLDENROD)
                 pilimg = img.pil_image()
-                label = "%s Suomi-NPP VIIRS mid-infrared brightness temperature (c)"
-                colormap.greys.set_range(50, -50)
-                img_colormap = colormap.greys
+                label = "%s Suomi-NPP VIIRS mid-infrared " \
+                        "brightness temperature (c)"
+                global_data.image.avomir.colormap.set_range(-50, 50)
+                img_colormap = global_data.image.avomir.colormap
                 tick_marks = 20
                 minor_tick_marks = 10
             elif self.product == 'truecolor':
