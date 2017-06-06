@@ -59,6 +59,7 @@ SECTORS = (('AKSC', '1km'),
            ('RUKA', '2km'),
            ('RUKI', '2km'),
            ('RUNP', '5km'))
+TYPEFACE = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
 
 
 class AvoProcessor(object):
@@ -100,6 +101,7 @@ class AvoProcessor(object):
                                  end - GRANULE_SPAN, instrument='viirs')
 
         images = []
+        colorbar_text_color = GOLDENROD
         for (sector, size) in SECTORS:
             size_sector = size+sector
             sector_def = get_area_def(size_sector)
@@ -186,14 +188,14 @@ class AvoProcessor(object):
                 img_colormap.set_range(5, -6)
                 tick_marks = 1
                 minor_tick_marks = .5
+                colorbar_text_color = (0,0,0)
             else:
                 raise Exception("unknown product")
 
             dc = DecoratorAGG(pilimg)
             dc.align_bottom()
 
-            typeface = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
-            font = aggdraw.Font(GOLDENROD, typeface, size=14)
+            font = aggdraw.Font(colorbar_text_color, TYPEFACE, size=14)
             if img_colormap is not None:
                 dc.add_scale(img_colormap, extend=True, tick_marks=tick_marks,
                              minor_tick_marks=minor_tick_marks, font=font,
