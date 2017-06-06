@@ -102,6 +102,7 @@ class AvoProcessor(object):
 
         images = []
         colorbar_text_color = GOLDENROD
+        img_colormap = None
         for (sector, size) in SECTORS:
             size_sector = size+sector
             sector_def = get_area_def(size_sector)
@@ -116,14 +117,11 @@ class AvoProcessor(object):
             global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs",
                                                     start_slack,
                                                     data["orbit_number"])
-            img_colormap = None
             if self.product == 'ir108':
                 global_data.load(global_data.image.avoir.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avoir()
-                img.add_overlay(color=GOLDENROD)
-                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS" \
                         "thermal infrared brightness temperature(C)"
                 colormap.greys.set_range(35, -65)
@@ -135,8 +133,6 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avoirhr()
-                img.add_overlay(color=GOLDENROD)
-                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS HR " \
                         "thermal infrared brightness temperature(C)"
                 colormap.greys.set_range(35, -65)
@@ -148,8 +144,6 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avovis()
-                img.add_overlay(color=GOLDENROD)
-                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS visible reflectance (percent)"
                 colormap.greys.set_range(0, 100)
                 img_colormap = colormap.greys
@@ -160,8 +154,6 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avomir()
-                img.add_overlay(color=GOLDENROD)
-                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS mid-infrared " \
                         "brightness temperature (c)"
                 global_data.image.avomir.colormap.set_range(-50, 50)
@@ -173,25 +165,23 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.truecolor()
-                img.add_overlay(color=GOLDENROD)
-                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS true color"
             elif self.product == 'btd':
                 global_data.load(global_data.image.avobtd.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avobtd()
-                img.add_overlay(color=GOLDENROD)
-                pilimg = img.pil_image()
                 label = "%s Suomi-NPP VIIRS brightness temperature difference"
                 img_colormap = global_data.image.avobtd.colormap
-                img_colormap.set_range(5, -6)
+                img_colormap.set_range(-6,5)
                 tick_marks = 1
                 minor_tick_marks = .5
                 colorbar_text_color = (0,0,0)
             else:
                 raise Exception("unknown product")
 
+            img.add_overlay(color=GOLDENROD)
+            pilimg = img.pil_image()
             dc = DecoratorAGG(pilimg)
             dc.align_bottom()
 
