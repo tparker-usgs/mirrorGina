@@ -174,7 +174,7 @@ class AvoProcessor(object):
                 label = "%s Suomi-NPP VIIRS brightness temperature difference"
                 img_colormap = global_data.image.avobtd.colormap
                 # set_range disabled while troubleshooting image contrast
-                #img_colormap.set_range(-6,5)
+                img_colormap.set_range(-6,5)
                 tick_marks = 1
                 minor_tick_marks = .5
                 colorbar_text_color = (0,0,0)
