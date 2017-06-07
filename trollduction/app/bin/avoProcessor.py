@@ -124,7 +124,7 @@ class AvoProcessor(object):
                 img = local_data.image.avoir()
                 label = "%s Suomi-NPP VIIRS" \
                         "thermal infrared brightness temperature(C)"
-                colormap.greys.set_range(35, -65)
+                colormap.greys.set_range(-65, 35)
                 img_colormap = colormap.greys
                 tick_marks = 10
                 minor_tick_marks = 5
@@ -135,7 +135,7 @@ class AvoProcessor(object):
                 img = local_data.image.avoirhr()
                 label = "%s Suomi-NPP VIIRS HR " \
                         "thermal infrared brightness temperature(C)"
-                colormap.greys.set_range(35, -65)
+                colormap.greys.set_range(-65, 35)
                 img_colormap = colormap.greys
                 tick_marks = 10
                 minor_tick_marks = 5
