@@ -173,7 +173,8 @@ class AvoProcessor(object):
                 img = local_data.image.avobtd()
                 label = "%s Suomi-NPP VIIRS brightness temperature difference"
                 img_colormap = global_data.image.avobtd.colormap
-                img_colormap.set_range(-6,5)
+                # set_range disabled while troubleshooting image contrast
+                #img_colormap.set_range(-6,5)
                 tick_marks = 1
                 minor_tick_marks = .5
                 colorbar_text_color = (0,0,0)
@@ -201,6 +202,7 @@ class AvoProcessor(object):
             else:
                 file_start = start
             start_string = file_start.strftime('%m/%d/%Y %H:%M UCT')
+            font = aggdraw.Font(GOLDENROD, TYPEFACE, size=14)
             dc.add_text(label % start_string, font=font, height=30,
                         extend=True, bg_opacity=255, bg='black')
 
