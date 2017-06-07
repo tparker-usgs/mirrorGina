@@ -201,7 +201,7 @@ class AvoProcessor(object):
                 file_start = passes[0][0]
             else:
                 file_start = start
-            start_string = file_start.strftime('%m/%d/%Y %H:%M UCT')
+            start_string = file_start.strftime('%m/%d/%Y %H:%M UTC')
             font = aggdraw.Font(GOLDENROD, TYPEFACE, size=14)
             dc.add_text(label % start_string, font=font, height=30,
                         extend=True, bg_opacity=255, bg='black')
