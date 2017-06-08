@@ -204,7 +204,7 @@ class AvoProcessor(object):
             start_string = file_start.strftime('%m/%d/%Y %H:%M UTC')
             font = aggdraw.Font(GOLDENROD, TYPEFACE, size=14)
             dc.add_text(label % start_string, font=font, height=30,
-                        extend=True, bg_opacity=64, bg='black')
+                        extend=True, bg_opacity=128, bg='black')
 
             filepath = os.path.join(PNG_DIR, sector)
             if not os.path.exists(filepath):
