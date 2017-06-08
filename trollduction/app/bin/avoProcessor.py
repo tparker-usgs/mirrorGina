@@ -59,7 +59,7 @@ SECTORS = (('AKSC', '1km'),
            ('RUKA', '2km'),
            ('RUKI', '2km'),
            ('RUNP', '5km'))
-TYPEFACE = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+TYPEFACE = "/app/fonts/Cousine-Bold.ttf"
 
 
 class AvoProcessor(object):
