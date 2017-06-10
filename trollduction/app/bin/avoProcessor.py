@@ -174,6 +174,7 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avodnb()
+                img.enhance(stretch='linear')
                 label = "%s Suomi-NPP VIIRS day/night band"
                 dev = True
             elif self.product == 'btd':
