@@ -99,7 +99,8 @@ def avodnb(self):
     lonlats = self['DNB'].area.get_lonlats()
 
     sunz = sza(self.time_slot, lonlats[0], lonlats[1])
-    sunz = np.ma.masked_outside(sunz, 103, 180)
+    #sunz = np.ma.masked_outside(sunz, 103, 180)
+    sunz = np.ma.masked_outside(sunz, 90, 180)
     sunzmask = sunz.mask
 
     data = np.ma.masked_where(sunzmask, self['DNB'].data)
