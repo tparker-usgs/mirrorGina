@@ -401,4 +401,4 @@ avobtd.colormap2 = Colormap((0.000000, (200, 48, 7)),
                            (0.996078, (254, 254, 254)),
                            (1.000000, (255, 255, 255)))
 
-viirs = [avoir, avoirhr, avobtd, avovis, avomir]
+viirs = [avoir, avoirhr, avobtd, avovis, avomir, avodnb]
