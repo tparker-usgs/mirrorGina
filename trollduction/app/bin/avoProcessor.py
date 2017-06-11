@@ -173,8 +173,10 @@ class AvoProcessor(object):
                 global_data.load(global_data.image.avodnb.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
-                count = local_data.channels[0].data.count()
-                if count < 100:
+                size = local_data.channels[0].data.size
+                data_size = local_data.channels[0].data.count()
+
+                if float(data_size) / size < .1:
                     continue
                 img = local_data.image.avodnb()
                 img.enhance(stretch='linear')
