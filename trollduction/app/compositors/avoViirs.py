@@ -7,7 +7,8 @@ from trollimage.colormap import Colormap
 from trollsched.satpass import Pass
 from pprint import pprint
 from mpop.projector import get_area_def
-
+from pyorbital.astronomy import sun_zenith_angle as sza
+import numpy as np
 
 C0 = 273.15
 
@@ -88,6 +89,28 @@ def avomir(self):
 avomir.prerequisites = set(["I04"])
 avomir.colormap = Colormap((0.0, (0.0, 0.0, 0.0)),
                            (1.0, (1.0, 1.0, 1.0)))
+
+def avodnb(self):
+    """Make a black and white image of the IR 10.8um channel (320m).
+       Modeled after mpop.instruments.viirs.ir108
+    """
+    self.check_channels('DNB')
+
+    lonlats = self['DNB'].area.get_lonlats()
+
+    sunz = sza(self.time_slot, lonlats[0], lonlats[1])
+    #sunz = np.ma.masked_outside(sunz, 103, 180)
+    sunz = np.ma.masked_outside(sunz, 90, 180)
+    sunzmask = sunz.mask
+
+    data = np.ma.masked_where(sunzmask, self['DNB'].data)
+    img = geo_image.GeoImage((data, data, data),
+                                self.area,
+                                self.time_slot,
+                                fill_value=None,
+                                mode="RGB")
+    return img
+avodnb.prerequisites = set(["DNB"])
 
 
 def avobtd(self):
@@ -379,4 +402,4 @@ avobtd.colormap2 = Colormap((0.000000, (200, 48, 7)),
                            (0.996078, (254, 254, 254)),
                            (1.000000, (255, 255, 255)))
 
-viirs = [avoir, avoirhr, avobtd, avovis, avomir]
+viirs = [avoir, avoirhr, avobtd, avovis, avomir, avodnb]

@@ -7,11 +7,15 @@ PYTHONPATH=/app/collectors/lib:$PYTHONPATH
 #
 # GMTCO and SVM files
 */5 * * * * root cd /app/collectors/viirs ; single.py -f /tmp/gina.flock -c ./mirror_gina.py viirs -v -n 5 -f uafgina > /data/logs/viirsMirror/viirsMirror-uafgina_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
-0 * * * * root singleTimeout.sh -t 3600 -v -f /tmp/gina.flock -c ./mirror_gina.py > /dev/null 2>&1
+0 * * * * root singleTimeout.sh -v -t 3600 -f /tmp/gina.flock -c ./mirror_gina.py > /dev/null 2>&1
 
 # GITCO and SVI files
 */5 * * * * root cd /app/collectors/viirs ; single.py -f /tmp/ginahr.flock -c ./mirror_gina.py viirs_hr -v -n 5 -f uafgina > /data/logs/viirsMirror/viirsMirror-uafgina-hr_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
-0 * * * * root singleTimeout.sh -t 3600 -v -f /tmp/ginahr.flock -c ./mirror_gina.py > /dev/null 2>&1
+0 * * * * root singleTimeout.sh -v -t 3600 -f /tmp/ginahr.flock -c ./mirror_gina.py > /dev/null 2>&1
+
+# GDNBO and SVDNB files
+*/5 * * * * root cd /app/collectors/viirs ; single.py -f /tmp/ginadnb.flock -c ./mirror_gina.py viirs_dnb -v -n 5 -f uafgina > /data/logs/viirsMirror/viirsMirror-uafgina-dnb_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
+0 * * * * root singleTimeout.sh -v -t 3600 -f /tmp/ginadnb.flock -c ./mirror_gina.py > /dev/null 2>&1
 
 # cleanup
 0 0 * * * root find /data/viirs/sdr/uafgina -mtime +14 -exec rm {} \;

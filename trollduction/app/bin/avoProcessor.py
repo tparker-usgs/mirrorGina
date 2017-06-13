@@ -29,6 +29,7 @@ import argparse
 PRODUCTS = {'ir108': 'TIR',
             'ir108hr': 'TIR',
             'truecolor': 'VIS',
+            'dnb': 'VIS',
             'btd': 'ASH',
             'vis': 'VIS',
             'mir': 'MIR'}
@@ -36,6 +37,7 @@ ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 GOLDENROD = (218, 165, 32)
 PNG_DIR = '/data/viirs/png'
+PNG_DEV_DIR = '/data/viirs/png-dev'
 SECTORS = (('AKSC', '1km'),
            ('AKAP', '1km'),
            ('AKEA', '1km'),
@@ -103,6 +105,7 @@ class AvoProcessor(object):
         images = []
         colorbar_text_color = GOLDENROD
         img_colormap = None
+        dev = False
         for (sector, size) in SECTORS:
             size_sector = size+sector
             sector_def = get_area_def(size_sector)
@@ -166,6 +169,19 @@ class AvoProcessor(object):
                 local_data = global_data.project(size_sector)
                 img = local_data.image.truecolor()
                 label = "%s Suomi-NPP VIIRS true color"
+            elif self.product == 'dnb':
+                global_data.load(global_data.image.avodnb.prerequisites,
+                                 time_interval=(start_slack, end))
+                local_data = global_data.project(size_sector)
+                size = local_data.channels[0].data.size
+                data_size = local_data.channels[0].data.count()
+
+                if float(data_size) / size < .1:
+                    continue
+                img = local_data.image.avodnb()
+                img.enhance(stretch='linear')
+                label = "%s Suomi-NPP VIIRS day/night band"
+                dev = True
             elif self.product == 'btd':
                 global_data.load(global_data.image.avobtd.prerequisites,
                                  time_interval=(start_slack, end))
@@ -206,7 +222,11 @@ class AvoProcessor(object):
             dc.add_text(label % start_string, font=font, height=30,
                         extend=True, bg_opacity=128, bg='black')
 
-            filepath = os.path.join(PNG_DIR, sector)
+            if dev:
+                filepath = os.path.join(PNG_DEV_DIR, sector)
+            else:
+                filepath = os.path.join(PNG_DIR, sector)
+
             if not os.path.exists(filepath):
                 print("Making out dir " + filepath)
                 os.makedirs(filepath)

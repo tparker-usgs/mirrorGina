@@ -48,6 +48,12 @@ INSTRUMENTS = {
         'level': 'level1',
         'out_path': 'viirs/sdr',
         'match': '/(GITCO|SVI01|SVI04|SVI05)_'
+    },
+    'viirs_dnb': {
+        'name': 'viirs',
+        'level': 'level1',
+        'out_path': 'viirs/sdr',
+        'match': '/(GDNBO|SVDNB)_'
     }
 
 }
