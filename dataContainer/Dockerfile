@@ -11,6 +11,7 @@ FROM stackbrew/busybox:latest
 # Create logs volume
 VOLUME /data
 WORKDIR /data/logs
-WORKDIR /data/viirs
+WORKDIR /data/viirs/sdr
+WORKDIR /data/omps/edr
 
 CMD  ["true"]
