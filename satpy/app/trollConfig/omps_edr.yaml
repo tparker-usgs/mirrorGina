@@ -1,0 +1,61 @@
+reader:
+  description: Generic OMPS EDR reader
+  name: omps_edr
+  reader: !!python/name:satpy.readers.yaml_reader.FileYAMLReader
+  sensors: [omps]
+
+file_types:
+  omps_tc_so2_edr:
+    file_reader: !!python/name:satpy.readers.omps_edr.EDREOSFileHandler
+    file_patterns: ['{instrument_shortname}-{platform_shortname}-TC_EDR_SO2NRT-{start_time:%Ym%m%dt%H%M%S}-o{orbit:05d}-{end_time:%Ym%m%dt%H%M%S}.he5']
+    #file_patterns: ['{instrument_shortname}-{platform_shortname}-TC_EDR_SO2NRT-{start_time:%Ym%m%dt%H%M%S}-o{orbit:05d}-{end_time:%Ym%m%dt%H%M%S}.he5']
+  omps_tc_to3_edr:
+    file_reader: !!python/name:satpy.readers.omps_edr.EDRFileHandler
+    file_patterns: ['{instrument_shortname}-{platform_shortname}-TC_EDR_TO3-{version}-{start_time:%Ym%m%dt%H%M%S}-o{orbit:05d}-{end_time:%Ym%m%dt%H%M%S}.h5']
+
+datasets:
+  reflectivity_331:
+    name: reflectivity_331
+    resolution: 50000
+    coordinates: [longitude_to3, latitude_to3]
+    file_type: omps_tc_to3_edr
+    file_key: SCIENCE_DATA/Reflectivity331
+  uvaerosol_index:
+    name: uvaerosol_index
+    resolution: 50000
+    coordinates: [longitude_to3, latitude_to3]
+    file_type: omps_tc_to3_edr
+    file_key: SCIENCE_DATA/UVAerosolIndex
+  so2_trm:
+    name: so2_trm
+    resolution: 50000
+    coordinates: [longitude_so2, latitude_so2]
+    file_type: omps_tc_so2_edr
+    file_key: HDFEOS/SWATHS/OMPS Column Amount SO2/Data Fields/ColumnAmountSO2_TRM
+  longitude_to3:
+    name: longitude_to3
+    resolution: 50000
+    file_type: omps_tc_to3_edr
+    file_key: GEOLOCATION_DATA/Longitude
+    units: degrees
+    standard_name: longitude
+  latitude_to3:
+    name: latitude_to3
+    resolution: 50000
+    file_type: omps_tc_to3_edr
+    file_key: GEOLOCATION_DATA/Latitude
+    units: degrees
+    standard_name: latitude
+  latitude_so2:
+    name: latitude_so2
+    resolution: 50000
+    file_type: omps_tc_so2_edr
+    file_key: HDFEOS/SWATHS/OMPS Column Amount SO2/Geolocation Fields/Latitude
+    units: degrees
+    standard_name: latitude
+#[file_key:so2_trm_eos]
+#variable_name=HDFEOS/SWATHS/{file_group}/Data Fields/ColumnAmountSO2_TRM
+#units_attr=Units
+#missing_attr=MissingValue
+#factor=ScaleFactor
+#offset=Offset
