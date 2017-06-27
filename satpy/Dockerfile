@@ -45,7 +45,7 @@ WORKDIR /usr/src/
 ADD installAggdraw.sh .
 RUN ./installAggdraw.sh
 
-COPY supervisord.conf /usr/local/etc/supervisord.conf
+COPY supervisord.conf /etc/supervisord.conf
 
 # 8
 COPY app /app
