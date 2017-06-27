@@ -45,7 +45,11 @@ WORKDIR /usr/src/
 ADD installAggdraw.sh .
 RUN ./installAggdraw.sh
 
-COPY supervisord.conf /etc/supervisord.conf
+# 3
+ADD installPytroll.sh .
+RUN ./installPytroll.sh && cd .. && rm -r /usr/src
+
+COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 # 8
 COPY app /app
@@ -53,4 +57,4 @@ WORKDIR /app
 
 ENV PPP_CONFIG_DIR=/app/trollConfig HOME=/home/tscan PYTHONPATH=/app/compositors LOG_DIR=/data/logs
 
-CMD ["/usr/local/bin/supervisord"]
+CMD ["/usr/bin/supervisord"]
