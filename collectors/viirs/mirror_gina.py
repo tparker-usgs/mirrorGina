@@ -100,7 +100,7 @@ class MirrorGina(object):
             os.makedirs(self.tmp_path)
 
         self.conn = Db(DB_DIR)
-        self.mattermost = mm.Mattermost(verbose=True)
+        self.mattermost = mm.Mattermost()
         # self.mattermost.set_log_level(logging.DEBUG)
 
         self.hostname = socket.gethostname()
