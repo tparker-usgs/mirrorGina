@@ -18,7 +18,7 @@ PYTHONPATH=/app/collectors/lib:$PYTHONPATH
 0 * * * * root singleTimeout.sh -v -t 3600 -f /tmp/ginadnb.flock -c ./mirror_gina.py > /dev/null 2>&1
 
 # cleanup
-0 0 * * * root find /data/viirs/sdr/uafgina -mtime +10 -exec rm {} \;
+0 0 * * * root find /data/viirs/sdr/uafgina -mtime +7 -exec rm {} \;
 0 0 * * * root find /data/logs/viirsMirror -mtime +7 -exec rm {} \;
 
 ########
