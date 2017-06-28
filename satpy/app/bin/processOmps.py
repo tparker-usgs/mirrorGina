@@ -4,48 +4,30 @@ import json
 from posttroll.subscriber import Subscribe
 from posttroll.message import datetime_encoder
 from pprint import pprint
-from mpop.satellites import PolarFactory
 from datetime import timedelta, datetime
 from dateutil import parser
 from pyorbital.orbital import Orbital
 from mpop.utils import debug_on
 from trollsched.satpass import Pass
 from mpop.projector import get_area_def
-import mpop.imageo.geo_image as geo_image
-#from PIL import Image
 from pydecorate import DecoratorAGG
 import aggdraw
-from trollimage.colormap import rdbu
-from trollsched.satpass import Pass
-from mpop.projector import get_area_def
 import os
 import os.path
 import tomputils.mattermost as mm
-from trollimage import colormap
 import sys
 import traceback
-import argparse
-
-import logging
 from satpy.scene import Scene
-from datetime import datetime
-import satpy.writers
-from trollimage.colormap import rdbu, Colormap, rainbow
+from trollimage.colormap import rainbow
 import numpy as np
+from pycoast import ContourWriterAGG
+from trollimage.image import Image
 
-
-PRODUCTS = {'ir108': 'TIR',
-            'ir108hr': 'TIR',
-            'truecolor': 'VIS',
-            'dnb': 'VIS',
-            'btd': 'ASH',
-            'vis': 'VIS',
-            'mir': 'MIR'}
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 GOLDENROD = (218, 165, 32)
-PNG_DIR = '/data/viirs/png'
-PNG_DEV_DIR = '/data/viirs/png-dev'
+PNG_DIR = '/data/omps/png'
+PNG_DEV_DIR = '/data/omps/png-dev'
 SECTORS = (('AKSC', '1km'),
            ('AKAP', '1km'),
            ('AKEA', '1km'),
@@ -73,9 +55,8 @@ TYPEFACE = "/app/fonts/Cousine-Bold.ttf"
 
 
 class AvoProcessor(object):
-    def __init__(self, args):
+    def __init__(self):
         self.mattermost = mm.Mattermost(verbose=True)
-        self.product = args.product
 
     def process_message(self, msg):
         proc_start = datetime.now()
@@ -90,9 +71,9 @@ class AvoProcessor(object):
         start_slack = start - ORBIT_SLACK
         print ("start %s :: %s" % (start_slack, type(start_slack)))
         print ("end %s :: %s" % (end, type(end)))
-        overpass = Pass(platform_name, start_slack, end, instrument='viirs')
-        previous_overpass = Pass(platform_name, start_slack - GRANULE_SPAN,
-                                 end - GRANULE_SPAN, instrument='viirs')
+        reader = "satpy/etc/readers/omps_edr.yaml"
+        base_dir = "/data/omps/edr"
+        overpass = Pass(platform_name, start_slack, end, instrument='omps')
 
         images = []
         colorbar_text_color = GOLDENROD
@@ -102,95 +83,39 @@ class AvoProcessor(object):
             size_sector = size+sector
             sector_def = get_area_def(size_sector)
             coverage = overpass.area_coverage(sector_def)
-            previous_coverage = previous_overpass.area_coverage(sector_def)
-            print "%s coverage: %f" % (size_sector, coverage)
+            print("%s coverage: %f" % (size_sector, coverage))
 
-            if coverage < .1 or not coverage > previous_coverage:
+            if coverage < .1:
                 continue
             images.append((size_sector, coverage * 100))
 
-            global_data = PolarFactory.create_scene("Suomi-NPP", "", "viirs",
-                                                    start_slack,
-                                                    data["orbit_number"])
-            if self.product == 'ir108':
-                global_data.load(global_data.image.avoir.prerequisites,
-                                 time_interval=(start_slack, end))
-                local_data = global_data.project(size_sector)
-                img = local_data.image.avoir()
-                label = "%s Suomi-NPP VIIRS" \
-                        "thermal infrared brightness temperature(C)"
-                colormap.greys.set_range(-65, 35)
-                img_colormap = colormap.greys
-                tick_marks = 10
-                minor_tick_marks = 5
-            elif self.product == 'ir108hr':
-                global_data.load(global_data.image.avoirhr.prerequisites,
-                                 time_interval=(start_slack, end))
-                local_data = global_data.project(size_sector)
-                img = local_data.image.avoirhr()
-                label = "%s Suomi-NPP VIIRS HR " \
-                        "thermal infrared brightness temperature(C)"
-                colormap.greys.set_range(-65, 35)
-                img_colormap = colormap.greys
-                tick_marks = 10
-                minor_tick_marks = 5
-            elif self.product == 'vis':
-                global_data.load(global_data.image.avovis.prerequisites,
-                                 time_interval=(start_slack, end))
-                local_data = global_data.project(size_sector)
-                img = local_data.image.avovis()
-                label = "%s Suomi-NPP VIIRS visible reflectance (percent)"
-                colormap.greys.set_range(0, 100)
-                img_colormap = colormap.greys
-                tick_marks = 20
-                minor_tick_marks = 10
-            elif self.product == 'mir':
-                global_data.load(global_data.image.avomir.prerequisites,
-                                 time_interval=(start_slack, end))
-                local_data = global_data.project(size_sector)
-                img = local_data.image.avomir()
-                label = "%s Suomi-NPP VIIRS mid-infrared " \
-                        "brightness temperature (c)"
-                global_data.image.avomir.colormap.set_range(-50, 50)
-                img_colormap = global_data.image.avomir.colormap
-                tick_marks = 20
-                minor_tick_marks = 10
-            elif self.product == 'truecolor':
-                global_data.load(global_data.image.truecolor.prerequisites,
-                                 time_interval=(start_slack, end))
-                local_data = global_data.project(size_sector)
-                img = local_data.image.truecolor()
-                label = "%s Suomi-NPP VIIRS true color"
-            elif self.product == 'dnb':
-                global_data.load(global_data.image.avodnb.prerequisites,
-                                 time_interval=(start_slack, end))
-                local_data = global_data.project(size_sector)
-                size = local_data.channels[0].data.size
-                data_size = local_data.channels[0].data.count()
+            global_scene = Scene(platform_name="SNPP", sensor="omps",
+                                 start_time=start, end_time=end,
+                                 base_dir=base_dir,
+                                 reader=reader)
+            global_scene.load(['so2_trm'])
+            local = global_scene.resample(sector_def,
+                                          radius_of_influence=100000)
+            ma = np.ma.masked_outside(local.datasets['so2_trm'], 0.5, 2)
+            mask = ma.mask
+            local.datasets['so2_trm'] = np.ma.masked_where(mask,
+                                                           local.datasets[
+                                                               'so2_trm'])
+            # plot
+            img = Image(local['so2_trm'], mode='L')
+            img.fill_value = (1, 1, 1)
+            img.colorize(rainbow)
 
-                if float(data_size) / size < .1:
-                    continue
-                img = local_data.image.avodnb()
-                img.enhance(stretch='linear')
-                label = "%s Suomi-NPP VIIRS day/night band"
-                dev = True
-            elif self.product == 'btd':
-                global_data.load(global_data.image.avobtd.prerequisites,
-                                 time_interval=(start_slack, end))
-                local_data = global_data.project(size_sector)
-                img = local_data.image.avobtd()
-                label = "%s Suomi-NPP VIIRS brightness temperature difference"
-                img_colormap = global_data.image.avobtd.colormap
-                # set_range disabled while troubleshooting image contrast
-                img_colormap.set_range(-6,5)
-                tick_marks = 1
-                minor_tick_marks = .5
-                colorbar_text_color = (0,0,0)
-            else:
-                raise Exception("unknown product")
-
-            img.add_overlay(color=GOLDENROD)
+            # add coast
+            cw_ = ContourWriterAGG()
             pilimg = img.pil_image()
+            cw_.add_coastlines(pilimg, sector_def, resolution='l',
+                               outline="black", width=0.5)
+
+            label = "%s Suomi-NPP OMPS SO2"
+            tick_marks = 10
+            minor_tick_marks = 5
+
             dc = DecoratorAGG(pilimg)
             dc.align_bottom()
 
@@ -223,13 +148,12 @@ class AvoProcessor(object):
                 print("Making out dir " + filepath)
                 os.makedirs(filepath)
 
-            #filename = "%s-%s-%s.png" % (size_sector,
+            # filename = "%s-%s-%s.png" % (size_sector,
             #                             self.product,
             #                             file_start.strftime('%Y%m%d-%H%M'))
 
-            filename = "%s.viirs.--.--.%s.%s.png" % (
-                file_start.strftime('%Y%m%d.%H%M'), size_sector, PRODUCTS[self.product])
-
+            filename = "%s.omps.--.--.%s.so2.png" % (
+                file_start.strftime('%Y%m%d.%H%M'), size_sector)
 
             filepath = os.path.join(filepath, filename)
 
@@ -240,7 +164,7 @@ class AvoProcessor(object):
         if len(images) < 1:
             msg = "### :hourglass: Granule covers no sectors."
         else:
-            msg = "### :camera: New image"
+            msg = "### :camera: New OMPS image"
             msg += "\n\n| Sector | Coverage (%) |"
             msg += "\n|:-------|:------------:|"
             for (sector, coverage) in images:
@@ -254,18 +178,8 @@ class AvoProcessor(object):
         self.mattermost.post(msg)
 
 
-def arg_parse():
-
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('-p', '--product', choices=dict.keys(PRODUCTS),
-                        help="product to produce", required=True)
-
-    return arg_parser.parse_args()
-
-
 def main():
-    args = arg_parse()
-    processor = AvoProcessor(args)
+    processor = AvoProcessor()
 
     topic = "pytroll://EARS/Suomi-NPP/omps/2"
     with Subscribe('', topic, True) as sub:
@@ -273,8 +187,7 @@ def main():
             try:
                 processor.process_message(msg)
             except:  # catch *all* exceptions
-                errmsg = "### Unexpected error "
-                errmsg += "\n**Product** %s" % args.product
+                errmsg = "### Unexpected error (OMPS)"
                 e = sys.exc_info()
                 if len(e) == 3:
                     errmsg += '\n %s' % e[1]
@@ -283,4 +196,5 @@ def main():
 
 
 if __name__ == '__main__':
+    debug_on()
     main()

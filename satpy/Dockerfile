@@ -55,6 +55,6 @@ COPY supervisord.conf /etc/supervisor/supervisord.conf
 COPY app /app
 WORKDIR /app
 
-ENV PPP_CONFIG_DIR=/app/trollConfig HOME=/home/tscan PYTHONPATH=/app/compositors LOG_DIR=/data/logs
+ENV PPP_CONFIG_DIR=/app/trollConfig HOME=/home/tscan PYTHONPATH=/app/compositors LOG_DIR=/data/logs GSHHS_DATA_ROOT=/app/gshhg
 
 CMD ["/usr/bin/supervisord"]
