@@ -24,8 +24,8 @@ PYTHONPATH=/app/collectors/lib:$PYTHONPATH
 ########
 # OMPS #
 ########
-*/5 * * * * root cd /data/omps/edr ; single.py -f /tmp/omps.flock -c wget -nd -r -l 1 --timeout 20 -nc -np  --accept-regex='OMPS-NPP-TC_EDR_SO2NRT-*' -e robots=off http://dds.gina.alaska.edu/public/IPOPP/npp/omps/level2/ > /data/logs/ompsMirror/ompsMirror-dds_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
-0 * * * * root singleTimeout.sh -t 3600 -v -f /tmp/omps.flock -c ./wget > /dev/null 2>&1
+*/5 * * * * root single.py -f /tmp/omps.flock -c mirrorGinaOmps.sh > /data/logs/ompsMirror/ompsMirror-dds_`date -u "+\%Y\%m\%d-\%H:\%M"` 2>&1
+0 * * * * root singleTimeout.sh -t 3600 -v -f /tmp/omps.flock -c mirrorGinaOmps.sh > /dev/null 2>&1
 
 # cleanup
 0 0 * * * root find /data/omps/edr -mtime +14 -exec rm {} \;
