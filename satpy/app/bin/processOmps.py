@@ -22,35 +22,15 @@ from trollimage.colormap import rainbow
 import numpy as np
 from pycoast import ContourWriterAGG
 from trollimage.image import Image
+from pyresample.utils import parse_area_file
+
 
 ORBIT_SLACK = timedelta(minutes=30)
 GRANULE_SPAN = timedelta(seconds=85.4)
 GOLDENROD = (218, 165, 32)
 PNG_DIR = '/data/omps/png'
 PNG_DEV_DIR = '/data/omps/png-dev'
-SECTORS = (('AKSC', '1km'),
-           ('AKAP', '1km'),
-           ('AKEA', '1km'),
-           ('AKWA', '1km'),
-           ('RUKA', '1km'),
-           ('AKAL', '2km'),
-           ('AKGA', '2km'),
-           ('AKIN', '2km'),
-           ('AKSE', '2km'),
-           ('AKNP', '5km'),
-           ('AKCL', '250m'),
-           ('AKPV', '250m'),
-           ('AKVN', '250m'),
-           ('AKSH', '250m'),
-           ('AKBO', '250m'),
-           ('AKCE', '250m'),
-           ('AKCH', '250m'),
-           ('BERS', '2km'),
-           ('AKNS', '2km'),
-           ('CNMI', '1km'),
-           ('RUKA', '2km'),
-           ('RUKI', '2km'),
-           ('RUNP', '5km'))
+AREA_DEF = '/app/trollConfig/areas.def'
 TYPEFACE = "/app/fonts/Cousine-Bold.ttf"
 
 
@@ -79,15 +59,13 @@ class AvoProcessor(object):
         colorbar_text_color = GOLDENROD
         img_colormap = None
         dev = False
-        for (sector, size) in SECTORS:
-            size_sector = size+sector
-            sector_def = get_area_def(size_sector)
+        for sector_def in parse_area_file(AREA_DEF):
             coverage = overpass.area_coverage(sector_def)
-            print("%s coverage: %f" % (size_sector, coverage))
+            print("%s coverage: %f" % (sector_def.name, coverage))
 
             if coverage < .1:
                 continue
-            images.append((size_sector, coverage * 100))
+            images.append((sector_def.name, coverage * 100))
 
             global_scene = Scene(platform_name="SNPP", sensor="omps",
                                  start_time=start, end_time=end,
@@ -140,9 +118,9 @@ class AvoProcessor(object):
                         extend=True, bg_opacity=128, bg='black')
 
             if dev:
-                filepath = os.path.join(PNG_DEV_DIR, sector)
+                filepath = os.path.join(PNG_DEV_DIR, sector_def.name)
             else:
-                filepath = os.path.join(PNG_DIR, sector)
+                filepath = os.path.join(PNG_DIR, sector_def.name)
 
             if not os.path.exists(filepath):
                 print("Making out dir " + filepath)
@@ -153,7 +131,7 @@ class AvoProcessor(object):
             #                             file_start.strftime('%Y%m%d-%H%M'))
 
             filename = "%s.omps.--.--.%s.so2.png" % (
-                file_start.strftime('%Y%m%d.%H%M'), size_sector)
+                file_start.strftime('%Y%m%d.%H%M'), sector_def.name)
 
             filepath = os.path.join(filepath, filename)
 
