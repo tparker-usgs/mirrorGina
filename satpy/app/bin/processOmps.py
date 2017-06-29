@@ -56,7 +56,7 @@ TYPEFACE = "/app/fonts/Cousine-Bold.ttf"
 
 class AvoProcessor(object):
     def __init__(self):
-        self.mattermost = mm.Mattermost(verbose=True)
+        self.mattermost = mm.Mattermost()
 
     def process_message(self, msg):
         proc_start = datetime.now()
