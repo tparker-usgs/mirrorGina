@@ -52,7 +52,7 @@ class AvoProcessor(object):
         print ("end %s :: %s" % (end, type(end)))
         reader = "satpy/etc/readers/omps_edr.yaml"
         base_dir = "/data/omps/edr"
-        overpass = Pass("Suomi-NPP", start_slack, end, instrument='omps')
+        overpass = Pass("SNPP", start_slack, end, instrument='omps')
 
         images = []
         colorbar_text_color = GOLDENROD
