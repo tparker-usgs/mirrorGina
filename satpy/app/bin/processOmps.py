@@ -45,8 +45,8 @@ class AvoProcessor(object):
         data = json.loads(datas)
         print("datas: %s " % type(data))
         pprint(data)
-        platform_name = data["platform_name"]
-        start = parser.parse(data["start_date"])
+        platform_name = data["platform_shortname"]
+        start = parser.parse(data["start_time"])
         end = start + GRANULE_SPAN
         start_slack = start - ORBIT_SLACK
         print ("start %s :: %s" % (start_slack, type(start_slack)))
