@@ -60,11 +60,11 @@ class AvoProcessor(object):
         dev = False
         for sector_def in parse_area_file(AREA_DEF):
             coverage = overpass.area_coverage(sector_def)
-            print("%s coverage: %f" % (sector_def.name, coverage))
+            print("%s coverage: %f" % (sector_def.region, coverage))
 
             if coverage < .1:
                 continue
-            images.append((sector_def.name, coverage * 100))
+            images.append((sector_def.region, coverage * 100))
 
             global_scene = Scene(platform_name="SUOMI NPP", sensor="omps",
                                  start_time=start, end_time=end,
@@ -117,9 +117,9 @@ class AvoProcessor(object):
                         extend=True, bg_opacity=128, bg='black')
 
             if dev:
-                filepath = os.path.join(PNG_DEV_DIR, sector_def.name)
+                filepath = os.path.join(PNG_DEV_DIR, sector_def.region)
             else:
-                filepath = os.path.join(PNG_DIR, sector_def.name)
+                filepath = os.path.join(PNG_DIR, sector_def.region)
 
             if not os.path.exists(filepath):
                 print("Making out dir " + filepath)
@@ -130,7 +130,7 @@ class AvoProcessor(object):
             #                             file_start.strftime('%Y%m%d-%H%M'))
 
             filename = "%s.omps.--.--.%s.so2.png" % (
-                file_start.strftime('%Y%m%d.%H%M'), sector_def.name)
+                file_start.strftime('%Y%m%d.%H%M'), sector_def.region)
 
             filepath = os.path.join(filepath, filename)
 
