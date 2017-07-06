@@ -45,7 +45,6 @@ class AvoProcessor(object):
         data = json.loads(datas)
         print("datas: %s " % type(data))
         pprint(data)
-        platform_name = data["platform_shortname"]
         start = parser.parse(data["start_time"])
         end = start + GRANULE_SPAN
         start_slack = start - ORBIT_SLACK
@@ -53,7 +52,7 @@ class AvoProcessor(object):
         print ("end %s :: %s" % (end, type(end)))
         reader = "satpy/etc/readers/omps_edr.yaml"
         base_dir = "/data/omps/edr"
-        overpass = Pass(platform_name, start_slack, end, instrument='omps')
+        overpass = Pass("Suomi-NPP", start_slack, end, instrument='omps')
 
         images = []
         colorbar_text_color = GOLDENROD
