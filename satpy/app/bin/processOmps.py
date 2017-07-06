@@ -86,7 +86,7 @@ class AvoProcessor(object):
             # add coast
             cw_ = ContourWriterAGG()
             pilimg = img.pil_image()
-            cw_.add_coastlines(pilimg, sector_def, resolution='l',
+            cw_.add_coastlines(pilimg, sector_def, resolution='f',
                                outline="black", width=0.5)
 
             label = "%s Suomi-NPP OMPS SO2"
