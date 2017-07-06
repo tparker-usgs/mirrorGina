@@ -66,7 +66,7 @@ class AvoProcessor(object):
                 continue
             images.append((sector_def.name, coverage * 100))
 
-            global_scene = Scene(platform_name="SNPP", sensor="omps",
+            global_scene = Scene(platform_name="SUOMI NPP", sensor="omps",
                                  start_time=start, end_time=end,
                                  base_dir=base_dir,
                                  reader=reader)
