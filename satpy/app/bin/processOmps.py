@@ -75,6 +75,8 @@ class AvoProcessor(object):
                                           radius_of_influence=100000)
             ma = np.ma.masked_outside(local.datasets['so2_trm'], 0.5, 2)
             mask = ma.mask
+            if mask.all():
+                continue
             local.datasets['so2_trm'] = np.ma.masked_where(mask,
                                                            local.datasets[
                                                                'so2_trm'])
