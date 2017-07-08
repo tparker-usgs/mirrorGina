@@ -80,6 +80,10 @@ class AvoProcessor(object):
             local.datasets['so2_trm'] = np.ma.masked_where(mask,
                                                            local.datasets[
                                                                'so2_trm'])
+            so2_max = np.nanmax(local.datasets['so2_trm'])
+            so2_min = np.nanmin(local.datasets['so2_trm'])
+            so2_count = local.datasets['so2_trm'].count()
+
             # plot
             img = Image(local['so2_trm'], mode='L')
             img.fill_value = (1, 1, 1)
@@ -144,10 +148,10 @@ class AvoProcessor(object):
             msg = "### :hourglass: Granule covers no sectors."
         else:
             msg = "### :camera: New OMPS image"
-            msg += "\n\n| Sector | Coverage (%) |"
-            msg += "\n|:-------|:------------:|"
+            msg += "\n\n| Sector | Count | Max"
+            msg +=  "\n|:-------|:-----:|:---:|"
             for (sector, coverage) in images:
-                msg += '\n| %s | %d |' % (sector, coverage)
+                msg += '\n| %s | %d | %d |' % (sector, so2_count, so2_max)
         msg += "\n**Granule span** %s" % mm.format_span(start, end)
         delta = mm.format_timedelta(proc_end - proc_start)
         span = mm.format_span(proc_start, proc_end)
