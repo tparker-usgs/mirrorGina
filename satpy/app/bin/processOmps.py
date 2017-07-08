@@ -64,7 +64,6 @@ class AvoProcessor(object):
 
             if coverage < .1:
                 continue
-            images.append((sector_def.area_id, coverage * 100))
 
             global_scene = Scene(platform_name="SUOMI NPP", sensor="omps",
                                  start_time=start, end_time=end,
@@ -83,6 +82,7 @@ class AvoProcessor(object):
             so2_max = np.nanmax(local.datasets['so2_trm'])
             so2_min = np.nanmin(local.datasets['so2_trm'])
             so2_count = local.datasets['so2_trm'].count()
+            images.append((sector_def.area_id, so2_count, so2_max))
 
             # plot
             img = Image(local['so2_trm'], mode='L')
@@ -150,7 +150,7 @@ class AvoProcessor(object):
             msg = "### :camera: New OMPS image"
             msg += "\n\n| Sector | Count | Max"
             msg +=  "\n|:-------|:-----:|:---:|"
-            for (sector, coverage) in images:
+            for (sector, so2_count, so2_max) in images:
                 msg += '\n| %s | %d | %d |' % (sector, so2_count, so2_max)
         msg += "\n**Granule span** %s" % mm.format_span(start, end)
         delta = mm.format_timedelta(proc_end - proc_start)
