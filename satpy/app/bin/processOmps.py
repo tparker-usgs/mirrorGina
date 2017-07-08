@@ -145,7 +145,7 @@ class AvoProcessor(object):
 
         proc_end = datetime.now()
         if len(images) < 1:
-            msg = "### :hourglass: Granule covers no sectors."
+            msg = "### :hourglass: OMPS pass covers no sectors."
         else:
             msg = "### :camera: New OMPS image"
             msg += "\n\n| Sector | Count | Max"
