@@ -151,7 +151,7 @@ class AvoProcessor(object):
             msg += "\n\n| Sector | Count | Max"
             msg +=  "\n|:-------|:-----:|:---:|"
             for (sector, so2_count, so2_max) in images:
-                msg += '\n| %s | %d | %d |' % (sector, so2_count, so2_max)
+                msg += '\n| {} | {} | {:f} |'.format(sector, so2_count, so2_max)
         msg += "\n**Granule span** %s" % mm.format_span(start, end)
         delta = mm.format_timedelta(proc_end - proc_start)
         span = mm.format_span(proc_start, proc_end)
