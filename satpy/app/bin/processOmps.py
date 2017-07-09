@@ -82,6 +82,10 @@ class AvoProcessor(object):
             so2_max = np.nanmax(local.datasets['so2_trm'])
             so2_min = np.nanmin(local.datasets['so2_trm'])
             so2_count = local.datasets['so2_trm'].count()
+
+            if so2_max < 1:
+                continue
+
             images.append((sector_def.area_id, so2_count, so2_max))
 
             # plot
