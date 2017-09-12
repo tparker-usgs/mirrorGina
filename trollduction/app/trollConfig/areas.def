@@ -88,6 +88,15 @@ REGION: 5kmAKNP {
 	AREA_EXTENT:    (-2500000, -2000000, 2500000, 2000000)
 };
 
+REGION: 250mAKGS {
+	NAME:		Great Sitkin
+	PCS_ID:		250mAKGS
+    PCS_DEF:    proj=laea, lat_0=52, lon_0=-176.15, a=6371228.0, units=m
+	XSIZE:		1000
+	YSIZE:		800
+	AREA_EXTENT:    (-125000, -100000, 125000, 100000)
+};
+
 REGION: 250mAKCL {
 	NAME:		Cleveland
 	PCS_ID:		250mAKCL
