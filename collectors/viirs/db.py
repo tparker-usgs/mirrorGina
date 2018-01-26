@@ -110,8 +110,11 @@ def get_db_conn(db_dir):
     :return: The connection object
     """
 
-    if not os.path.exists(db_dir):
-        os.makedirs(db_dir)
+    try:
+        if not os.path.exists(db_dir):
+            os.makedirs(db_dir)
+    except OSError as e:
+            pass
 
     db_file = os.path.join(db_dir, 'viirs-v%d.db' % SCHEMA_VERSION)
     conn = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES)

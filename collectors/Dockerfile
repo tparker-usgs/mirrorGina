@@ -24,6 +24,7 @@ ADD requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt # 1
 
 ADD bin bin
+# 1
 ADD viirs viirs
 ADD cron-collectors /tmp/cron-collectors
 ADD run_crond.sh  .

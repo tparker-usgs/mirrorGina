@@ -59,6 +59,7 @@ INSTRUMENTS = {
 }
 
 FACILITIES = ('uafgina', 'gilmore')
+SATELLITES = ('snpp')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
 OUT_DIR = os.path.join(os.environ['BASE_DIR'], 'data')
@@ -80,6 +81,9 @@ class MirrorGina(object):
 
         self._instrument = INSTRUMENTS[args.instrument]
         self.logger.debug("instrument: %s", self._instrument)
+
+        self._satellite = args.satellite
+        self.logger.debug("satellite: %s", self._satellite)
 
         self._num_conn = args.num_conn
         self.logger.debug("num_conn: %s", self._num_conn)
@@ -135,6 +139,7 @@ class MirrorGina(object):
         url += '&sensors[]=' + self._instrument['name']
         url += '&processing_levels[]=' + self._instrument['level']
         url += '&facilities[]=' + self.args.facility
+        url += '&satellites[]=' + self.args.satellite
         self.logger.debug("URL: %s", url)
         buf = cStringIO.StringIO()
 
@@ -314,6 +319,8 @@ def arg_parse():
                         action='store_true')
     parser.add_argument('-f', '--facility', choices=FACILITIES,
                         help="facility to query", required=True)
+    parser.add_argument('-s', '--satellite', choices=SATELLITES,
+                        help="satellite to query", required=True)
     parser.add_argument('instrument', choices=INSTRUMENTS.keys(),
                         help="instrument to query")
 
