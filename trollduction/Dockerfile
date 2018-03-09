@@ -1,4 +1,4 @@
-# mirror files from GINA
+# process received data
 #
 # BUILD-USING:	docker build -t trollduction .
 # RUN-USING:	docker run -e PYTHONUNBUFFERED=1 --detach=true --volumes-from data --name trollduction trollduction
@@ -7,7 +7,8 @@
 # can't use onbuild due to SSL visibility
 FROM python:2.7
 
-RUN apt-get update && apt-get -y install libhdf5-serial-dev libnetcdf-dev less unzip libfreetype6 libfreetype6-dev vim
+RUN apt-get update && apt-get -y install libhdf5-serial-dev libnetcdf-dev less unzip libfreetype6 libfreetype6-dev vim bash-completion
+
 #python-numpy python-scipy python-matplotlib libhdf5-serial-dev libnetcdf-dev
 
 RUN ln -s /usr/include/freetype2 /usr/include/freetype  
@@ -28,9 +29,9 @@ ADD DOIRootCA2.cer .
 WORKDIR /usr/share/ca-certificates/extra
 ADD DOIRootCA2.cer DOIRootCA2.crt
 RUN echo "extra/DOIRootCA2.crt" >> /etc/ca-certificates.conf && update-ca-certificates
+#RUN echo "extra/DOIRootCA2.crt" >> /etc/ca-certificates.conf 
 
 WORKDIR /src
-
 WORKDIR /src/app
 # 1
 ADD requirements.txt /src/app/
@@ -49,10 +50,6 @@ RUN ./installAggdraw.sh
 ADD installPytroll.sh .
 RUN ./installPytroll.sh && cd .. && rm -r /usr/src
 
-# 6
-#ADD installPytroll-tweaked.sh .
-#RUN ./installPytroll-tweaked.sh && cd .. && rm -r /usr/src
-
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 
 # 8
@@ -62,3 +59,4 @@ WORKDIR /app
 ENV PPP_CONFIG_DIR=/app/trollConfig HOME=/home/tscan PYTHONPATH=/app/compositors LOG_DIR=/data/logs
 
 CMD ["/usr/local/bin/supervisord"]
+#CMD ["/usr/bin/sleep 5000"]
