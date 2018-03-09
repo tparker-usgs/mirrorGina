@@ -59,7 +59,7 @@ INSTRUMENTS = {
 }
 
 FACILITIES = ('uafgina', 'gilmore')
-SATELLITES = ('snpp')
+SATELLITES = ('snpp', 'noaa20')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
 OUT_DIR = os.path.join(os.environ['BASE_DIR'], 'data')
