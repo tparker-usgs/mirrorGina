@@ -122,8 +122,6 @@ class AvoProcessor(object):
                                                     start_slack,
                                                     data["orbit_number"])
             label = platform_name + " "
-            if platform_name == 'NOAA-20':
-                label += "Preliminary, Non-Operational Data"
 
             if self.product == 'ir108':
                 global_data.load(global_data.image.avoir.prerequisites,
@@ -199,6 +197,8 @@ class AvoProcessor(object):
             else:
                 raise Exception("unknown product")
 
+            if platform_name == 'NOAA-20':
+                label += " Preliminary, Non-Operational Data"
             img.add_overlay(color=GOLDENROD)
             pilimg = img.pil_image()
             dc = DecoratorAGG(pilimg)
