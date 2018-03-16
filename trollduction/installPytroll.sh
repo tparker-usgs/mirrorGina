@@ -4,13 +4,16 @@ set -x
 
 export GIT_SSL_NO_VERIFY=true
 
-for i in pyresample mpop posttroll pycoast pydecorate pyorbital pytroll-schedule pyspectral python-geotiepoints trollimage pytroll-collectors trollduction; do
+#for i in pyresample mpop posttroll pycoast pydecorate pyorbital pytroll-schedule pyspectral python-geotiepoints trollimage pytroll-collectors trollduction; do
+for i in pyresample mpop posttroll pycoast pydecorate pyorbital pytroll-schedule pyspectral python-geotiepoints trollimage trollduction; do
 	echo "+++ installing $i"
 	git clone --progress --verbose git://github.com/pytroll/${i}.git
 	cd $i
 
-#	if [ $i = "posttroll" ] ; then
-#		git checkout develop
+#	if [ $i = "pytroll-collectors" ] ; then
+#		git checkout 367530a39e
+	if [ $i = "posttroll" ] ; then
+		git checkout develop
 #	elif [ $i = "pyresample" ] ; then
 #		git checkout pre-master
 #	elif [ $i = "pyorbital" ] ; then
@@ -21,7 +24,7 @@ for i in pyresample mpop posttroll pycoast pydecorate pyorbital pytroll-schedule
 #		git checkout pre-master
 #	elif [ $i = "python-geotiepoints" ] ; then
 #		git checkout develop
-#	fi
+	fi
 
 	python setup.py install
 	cd ..

@@ -1,4 +1,5 @@
-Pillow==2.1.0
+Pillow==2.2.0
+pyopenssl
 netCDF4
 h5py
 numpy==1.11.0
@@ -11,3 +12,4 @@ python-dateutil
 pytz
 requests
 tomputils>=1.1.2
+pyyaml

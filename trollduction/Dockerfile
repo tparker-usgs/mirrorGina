@@ -7,7 +7,7 @@
 # can't use onbuild due to SSL visibility
 FROM python:2.7
 
-RUN apt-get update && apt-get -y install libhdf5-serial-dev libnetcdf-dev less unzip libfreetype6 libfreetype6-dev vim bash-completion
+RUN apt-get update && apt-get -y install libhdf5-serial-dev libnetcdf-dev less unzip libfreetype6 libfreetype6-dev vim bash-completion 
 
 #python-numpy python-scipy python-matplotlib libhdf5-serial-dev libnetcdf-dev
 
@@ -46,7 +46,8 @@ WORKDIR /usr/src/
 ADD installAggdraw.sh .
 RUN ./installAggdraw.sh
 
-# 3
+# 4
+
 ADD installPytroll.sh .
 RUN ./installPytroll.sh && cd .. && rm -r /usr/src
 

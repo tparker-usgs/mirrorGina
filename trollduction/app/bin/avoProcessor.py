@@ -122,12 +122,15 @@ class AvoProcessor(object):
                                                     start_slack,
                                                     data["orbit_number"])
             label = platform_name + " "
+            if platform_name == 'NOAA-20':
+                label += "Preliminary, Non-Operational Data"
+
             if self.product == 'ir108':
                 global_data.load(global_data.image.avoir.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avoir()
-                label = "VIIRS thermal infrared brightness temperature(C)"
+                label += "VIIRS thermal infrared brightness temperature(C)"
                 colormap.greys.set_range(-65, 35)
                 img_colormap = colormap.greys
                 tick_marks = 10
@@ -137,7 +140,7 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avoirhr()
-                label = "VIIRS HR thermal infrared brightness temperature(C)"
+                label += "VIIRS HR thermal infrared brightness temperature(C)"
                 colormap.greys.set_range(-65, 35)
                 img_colormap = colormap.greys
                 tick_marks = 10
@@ -147,7 +150,7 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avovis()
-                label = "VIIRS visible reflectance (percent)"
+                label += "VIIRS visible reflectance (percent)"
                 colormap.greys.set_range(0, 100)
                 img_colormap = colormap.greys
                 tick_marks = 20
@@ -157,7 +160,7 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avomir()
-                label = "VIIRS mid-infrared brightness temperature (c)"
+                label += "VIIRS mid-infrared brightness temperature (c)"
                 global_data.image.avomir.colormap.set_range(-50, 50)
                 img_colormap = global_data.image.avomir.colormap
                 tick_marks = 20
@@ -167,7 +170,7 @@ class AvoProcessor(object):
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.truecolor()
-                label = "VIIRS true color"
+                label += "VIIRS true color"
             elif self.product == 'dnb':
                 global_data.load(global_data.image.avodnb.prerequisites,
                                  time_interval=(start_slack, end))
@@ -179,14 +182,14 @@ class AvoProcessor(object):
                     continue
                 img = local_data.image.avodnb()
                 img.enhance(stretch='linear')
-                label = "VIIRS day/night band"
+                label += "VIIRS day/night band"
                 dev = True
             elif self.product == 'btd':
                 global_data.load(global_data.image.avobtd.prerequisites,
                                  time_interval=(start_slack, end))
                 local_data = global_data.project(size_sector)
                 img = local_data.image.avobtd()
-                label = "VIIRS brightness temperature difference"
+                label += "VIIRS brightness temperature difference"
                 img_colormap = global_data.image.avobtd.colormap
                 # set_range disabled while troubleshooting image contrast
                 img_colormap.set_range(-6,5)
@@ -218,7 +221,7 @@ class AvoProcessor(object):
                 file_start = start
             start_string = file_start.strftime('%m/%d/%Y %H:%M UTC')
             font = aggdraw.Font(GOLDENROD, TYPEFACE, size=14)
-            dc.add_text(start_string + label, font=font, height=30,
+            dc.add_text(start_string + " " + label, font=font, height=30,
                         extend=True, bg_opacity=128, bg='black')
 
             if dev:
