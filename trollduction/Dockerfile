@@ -35,7 +35,7 @@ WORKDIR /src
 WORKDIR /src/app
 # 1
 ADD requirements.txt /src/app/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=60 --no-cache-dir -r requirements.txt
 
 WORKDIR /app/gshhg
 RUN wget http://www.soest.hawaii.edu/pwessel/gshhg/gshhg-shp-2.3.6.zip \

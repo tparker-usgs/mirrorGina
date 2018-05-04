@@ -1,3 +1,4 @@
+pyopenssl
 pycurl
 requests
 python-dateutil

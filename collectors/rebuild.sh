@@ -8,5 +8,5 @@ chmod 644 cron-collectors
 docker build -t collectors . \
 && docker stop collectors \
 && docker rm collectors \
-&& docker run --detach=true --volumes-from data --env-file=/home/tparker/private/collectors.env --name collectors collectors
+&& docker run --restart=always --detach=true --volumes-from data --env-file=/home/tparker/private/collectors.env --name collectors collectors
 
